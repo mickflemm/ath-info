@@ -2035,8 +2035,11 @@ int main(int argc, char *argv[])
 		printf("Warning: Invalid EEPROM Magic number!\n");
 	}
 
-	ee = malloc(sizeof(struct ath5k_eeprom_info));
-	ee = memset(ee,0,sizeof(struct ath5k_eeprom_info));
+	ee = calloc(sizeof(struct ath5k_eeprom_info), 1);
+	if (!ee) {
+		printf("Cannot allocate memory for EEPROM information\n");
+		return -1;
+	}
 
 	if(ath5k_eeprom_init(mem, mac_version, ee)){
 		printf("EEPROM Init failed\n");
