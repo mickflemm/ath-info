@@ -1574,7 +1574,7 @@ void dump_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee){
 		printf(" Antenna control  %2i:  0x%02x |\n",i,ee->ee_ant_control[mode][i]);
 	}
 	printf("|=========================================================|\n");
-	for(i = 0; i <= AR5K_EEPROM_N_OBDB; i++){
+	for(i = 0; i < AR5K_EEPROM_N_OBDB; i++){
 		printf("| Octave Band %i:          %2i |",i,ee->ee_ob[mode][i]);
 		printf(" db %i:                   %2i |\n",i,ee->ee_db[mode][i]);
 	}
