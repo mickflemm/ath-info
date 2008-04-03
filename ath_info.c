@@ -1258,7 +1258,7 @@ static const char *ath5k_hw_get_part_name(enum ath5k_srev_type type,
 					  u_int32_t val)
 {
 	const char *name = "xxxxx";
-	int i;
+	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(ath5k_srev_names); i++) {
 		if (ath5k_srev_names[i].sr_type != type ||
@@ -1854,16 +1854,17 @@ int main(int argc, char *argv[])
 	u_int16_t mac_version, ee_magic;
 	u_int8_t error, eeprom_size, dev_type, eemap;
 	struct ath5k_eeprom_info *ee;
-	int byte_size = 0;
+	unsigned int byte_size = 0;
 	void *mem;
 	int fd;
-	int i, anr = 1;
+	unsigned int i;
+	int anr = 1;
 	int do_write = 0;	/* default: read only */
 	int do_dump = 0;
 	int reg_read = 0;
 	int reg_write = 0;
 	unsigned int reg_write_val = 0;
-	int timer_count = 1;
+	unsigned int timer_count = 1;
 	int do_keycache_dump = 0;
 	int keycache_copy_idx = 0;
 

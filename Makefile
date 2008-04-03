@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g -O2 -Wall
+CFLAGS = -g -O2 -W -Wall
 LDFLAGS =
 DESTDIR =
 PREFIX = /usr/local
