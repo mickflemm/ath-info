@@ -1464,8 +1464,8 @@ static void usage(const char *n)
 		"unlawful radio transmissions!\n\n");
 }
 
-void dump_capabilities(struct ath5k_eeprom_info *ee){
-
+static void dump_capabilities(struct ath5k_eeprom_info *ee)
+{
 	u_int8_t has_a, has_b, has_g, has_rfkill, turbog_dis, turboa_dis;
 	u_int8_t xr2_dis, xr5_dis, has_crystal;
 
@@ -1542,8 +1542,8 @@ void dump_capabilities(struct ath5k_eeprom_info *ee){
 	printf("-===============================================-\n");
 }
 
-void dump_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee){
-
+static void dump_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
+{
 	int i;
 
 	printf("|=========================================================|\n");
@@ -1581,8 +1581,8 @@ void dump_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee){
 	printf("\\=========================================================/\n");
 }
 
-void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee){
-
+static void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
+{
 	struct ath5k_chan_pcal_info*	chan_pcal_info;
 	u_int16_t cal_piers;
 	int i, c;
@@ -1635,7 +1635,7 @@ void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee){
 	printf("\\======================================================================/\n");
 }
 
-u_int32_t extend_tu(u_int32_t base_tu, u_int32_t val, u_int32_t mask)
+static u_int32_t extend_tu(u_int32_t base_tu, u_int32_t val, u_int32_t mask)
 {
 	u_int32_t result;
 
@@ -1645,7 +1645,7 @@ u_int32_t extend_tu(u_int32_t base_tu, u_int32_t val, u_int32_t mask)
 	return result;
 }
 
-void dump_timers_register(void *mem, u_int16_t mac_version)
+static void dump_timers_register(void *mem, u_int16_t mac_version)
 {
 #define AR5K_TIMER0_5210		0x802c /* next TBTT */
 #define AR5K_TIMER0_5211		0x8028
@@ -1738,7 +1738,7 @@ void dump_timers_register(void *mem, u_int16_t mac_version)
 					AR5K_KEYTABLE_SIZE_5210 : \
 					AR5K_KEYTABLE_SIZE_5211)
 
-void keycache_dump(void *mem, u_int16_t mac_version)
+static void keycache_dump(void *mem, u_int16_t mac_version)
 {
 	int i, keylen;
 	u_int32_t val0, val1, val2, val3, val4, keytype, ant, mac0, mac1;
@@ -1791,7 +1791,7 @@ void keycache_dump(void *mem, u_int16_t mac_version)
 
 /* copy key index (0) to key index (idx) */
 
-void keycache_copy(void *mem, u_int16_t mac_version, int idx)
+static void keycache_copy(void *mem, u_int16_t mac_version, int idx)
 {
 	u_int32_t val0, val1, val2, val3, val4, keytype, mac0, mac1;
 	
@@ -1820,7 +1820,7 @@ void keycache_copy(void *mem, u_int16_t mac_version, int idx)
 	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,7), mac1);
 }
 
-void sta_id0_id1_dump(void *mem)
+static void sta_id0_id1_dump(void *mem)
 {
 #define AR5K_STA_ID0			0x8000
 #define AR5K_STA_ID1			0x8004
