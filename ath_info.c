@@ -493,9 +493,6 @@ struct ath5k_eeprom_info {
 		return (ret);						\
 } while (0)
 
-#define AR5K_EEPROM_READ_HDR(_o, _v)					\
-	AR5K_EEPROM_READ(_o, ee->_v);	\
-
 /* names for eeprom fields */
 struct eeprom_entry {
 	const char *name;
@@ -932,11 +929,11 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	/*
 	 * Read values from EEPROM and store them in the capability structure
 	 */
-	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_MAGIC, ee_magic);
-	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_PROTECT, ee_protect);
-	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_REG_DOMAIN, ee_regdomain);
-	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_VERSION, ee_version);
-	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_HDR, ee_header);
+	AR5K_EEPROM_READ(AR5K_EEPROM_MAGIC, ee->ee_magic);
+	AR5K_EEPROM_READ(AR5K_EEPROM_PROTECT, ee->ee_protect);
+	AR5K_EEPROM_READ(AR5K_EEPROM_REG_DOMAIN, ee->ee_regdomain);
+	AR5K_EEPROM_READ(AR5K_EEPROM_VERSION, ee->ee_version);
+	AR5K_EEPROM_READ(AR5K_EEPROM_HDR, ee->ee_header);
 
 	/* Return if we have an old EEPROM */
 	if (ee->ee_version < AR5K_EEPROM_VERSION_3_0)
@@ -957,11 +954,11 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	}
 #endif
 
-	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_ANT_GAIN(ee->ee_version), ee_ant_gain);
+	AR5K_EEPROM_READ(AR5K_EEPROM_ANT_GAIN(ee->ee_version), ee->ee_ant_gain);
 
 	if (ee->ee_version >= AR5K_EEPROM_VERSION_4_0) {
-		AR5K_EEPROM_READ_HDR(AR5K_EEPROM_MISC0, ee_misc0);
-		AR5K_EEPROM_READ_HDR(AR5K_EEPROM_MISC1, ee_misc1);
+		AR5K_EEPROM_READ(AR5K_EEPROM_MISC0, ee->ee_misc0);
+		AR5K_EEPROM_READ(AR5K_EEPROM_MISC1, ee->ee_misc1);
 	}
 
 	if (ee->ee_version < AR5K_EEPROM_VERSION_3_3) {
