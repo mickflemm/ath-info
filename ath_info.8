@@ -44,7 +44,6 @@ Field and value names for EEPROM writing. Possible fields are:
 .B pci_dev_id, pci_vendor_id, pci_class, pci_rev_id, pci_subsys_dev_id, pci_subsys_vendor_id, regdomain
 
 .SH "EXAMPLE"
-
 Execute the commands below from a root account.
 
 Retrieve the module's PCI memory address with \fBlspci\fP:
@@ -57,9 +56,7 @@ Retrieve the module's PCI memory address with \fBlspci\fP:
         Flags: medium devsel, IRQ 20
         Memory at 6c000000 (32-bit, non-prefetchable) [size=64K]
         Capabilities: [44] Power Management version 2
-
 .fi
-
 The above card has its memory mapped at 0x6c000000.
 .PP
 If no madwifi driver is running or the module isn't recognized by the
@@ -69,41 +66,26 @@ from the output above:
 .LP
 .nf
 setpci -s 0b:00.0 command=0x41f cache_line_size=0x10
-
-
+.fi
 .PP
 Retrieve some information of the module:
 .LP
 .nf
 # ./ath_info 0x6c000000
  \-==Device Information==\-
-.br
 MAC Version:  5211  (0x40) 
-.br
 MAC Revision: 5211  (0x42) 
-.br
 5Ghz PHY Revision: 5111  (0x17) 
-.br
 2Ghz PHY Revision: 2111  (0x23) 
-.br
  -==EEPROM Information==-
-.br
 EEPROM Version:     3.2 
-.br
 EEPROM Size:        16K
-.br
 Regulatory Domain:  0x20
-.br
  -==== Capabilities ====-
-.br
 |  802.11a Support: yes  |
-.br
 |  802.11b Support: yes  |
-.br
 |  802.11g Support: no   |
-.br
 |  RFKill  Support: no   |
-.br
  ========================
 .fi
 .PP
@@ -112,55 +94,32 @@ Check \fBhttp://madwifi.org/wiki/UserDocs/CountryCode\fP for more information on
 regdomains and country codes:
 .LP
 .nf
-# ./ath_info -w 0x6c000000 regdomain 0   
-.br
+# ./ath_info -w 0x6c000000 regdomain 0
  -==Device Information==-
-.br
 MAC Version:  5211  (0x40) 
-.br
 MAC Revision: 5211  (0x42) 
-.br
 5Ghz PHY Revision: 5111  (0x17) 
-.br
 2Ghz PHY Revision: 2111  (0x23) 
-.br
  -==EEPROM Information==-
-.br
 EEPROM Version:     3.2 
-.br
 EEPROM Size:        16K
-.br
 Regulatory Domain:  0x20 
-.br
  -==== Capabilities ====-
-.br
 |  802.11a Support: yes  |
-.br
 |  802.11b Support: yes  |
-.br
 |  802.11g Support: no   |
-.br
 |  RFKill  Support: no   |
-.br
  ========================
-.br
 GPIO registers: CR 00000000 DO 00000000 DI 00000000
-.br
            regdomain (0x00bf) := 0x0000
-.br
 WARNING: The write function may easy brick your device or
-.br
 violate state regulation on frequency usage.
-.br
 Proceed on your own risk!
-.br
 Shall I write the above value(s)? (y/n)
-.br
 y
 .fi
 
 .SH "BUGS"
-
 The write function is currently not tested with 5210 devices.
 .PP
 Use at your own risk, entering a false device address will have really 
