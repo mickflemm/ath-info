@@ -2012,16 +2012,16 @@ int main(int argc, char *argv[])
 	printf(" EEPROM Size: ");
 
 	if (eeprom_size == 0) {
-		printf("     4K |\n");
-		byte_size = 4096;
+		printf("  4 kbit |\n");
+		byte_size = 4096 / 8;
 	} else if (eeprom_size == 1) {
-		printf("     8K |\n");
-		byte_size = 8192;
+		printf("  8 kbit |\n");
+		byte_size = 8192 / 8;
 	} else if (eeprom_size == 2) {
-		printf("     16K |\n");
-		byte_size = 16384;
+		printf(" 16 kbit |\n");
+		byte_size = 16384 / 8;
 	} else
-		printf("       ?? |\n");
+		printf(" unknown |\n");
 
 	printf("| EEMAP:              %i |",eemap);
 
