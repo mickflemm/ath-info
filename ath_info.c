@@ -1623,22 +1623,22 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 	now_tu = now_tsf >> 10;
 
 	timer0_tu = extend_tu(now_tu, timer0, 0xffff);
-	printf("TIMER0 : 0x%8x TBTT : %5u TU:%8x\n", timer0,
+	printf("TIMER0: 0x%08x, TBTT: %5u, TU: 0x%08x\n", timer0,
 	       timer0 & timer_mask, timer0_tu);
 	timer1_tu = extend_tu(now_tu, timer1 >> 3, 0x7ffff >> 3);
-	printf("TIMER1 : 0x%8x DMAb : %5u TU:%8x(%d)\n", timer1,
+	printf("TIMER1: 0x%08x, DMAb: %5u, TU: 0x%08x (%d)\n", timer1,
 	       (timer1 >> 3) & timer_mask, timer1_tu, timer1_tu - timer0_tu);
 	timer2_tu = extend_tu(now_tu, timer2 >> 3, 0x1ffffff >> 3);
-	printf("TIMER2 : 0x%8x SWBA : %5u TU:%8x(%d)\n", timer2,
+	printf("TIMER2: 0x%08x, SWBA: %5u, TU: 0x%08x (%d)\n", timer2,
 	       (timer2 >> 3) & timer_mask, timer2_tu, timer2_tu - timer0_tu);
 	timer3_tu = extend_tu(now_tu, timer3, 0xffff);
-	printf("TIMER3 : 0x%8x ATIM : %5u TU:%8x(%d)\n", timer3,
+	printf("TIMER3: 0x%08x, ATIM: %5u, TU: 0x%08x (%d)\n", timer3,
 	       timer3 & timer_mask, timer3_tu, timer3_tu - timer0_tu);
-	printf("TSF    : 0x%8llx TSFTU: %5u TU:%8x\n",
+	printf("TSF: 0x%016llx, TSFTU: %5u, TU: 0x%08x\n",
 	       (unsigned long long)now_tsf, now_tu & timer_mask, now_tu);
 
-	printf("BEACON: %x\n", AR5K_REG_READ(AR5K_BEACON));
-	printf("LAST_TSTP: %x\n", AR5K_REG_READ(AR5K_LAST_TSTP));
+	printf("BEACON: 0x%08x\n", AR5K_REG_READ(AR5K_BEACON));
+	printf("LAST_TSTP: 0x%08x\n", AR5K_REG_READ(AR5K_LAST_TSTP));
 }
 
 #define AR5K_KEYTABLE_0_5210		0x9000
@@ -1751,15 +1751,14 @@ static void sta_id0_id1_dump(void *mem)
 
 	sta_id0 = AR5K_REG_READ(AR5K_STA_ID0);
 	sta_id1 = AR5K_REG_READ(AR5K_STA_ID1);
-	printf("STA_ID0 : %02x:%02x:%02x:%02x:%02x:%02x\n",
+	printf("STA_ID0: %02x:%02x:%02x:%02x:%02x:%02x\n",
 	       (sta_id0 >>  0) & 0xff,
 	       (sta_id0 >>  8) & 0xff,
 	       (sta_id0 >> 16) & 0xff,
 	       (sta_id0 >> 24) & 0xff,
 	       (sta_id1 >>  0) & 0xff,
 	       (sta_id1 >>  8) & 0xff);
-	printf("STA_ID1 : %08x AP:%d IBSS:%d "
-	       "KeyCache Disable:%d\n",
+	printf("STA_ID1: 0x%08x, AP: %d, IBSS: %d, KeyCache Disable: %d\n",
 	       sta_id1,
 	       sta_id1 & AR5K_STA_ID1_AP ? 1 : 0,
 	       sta_id1 & AR5K_STA_ID1_ADHOC ? 1 : 0,
@@ -1985,12 +1984,12 @@ int main(int argc, char *argv[])
 		phy_rev_2ghz = 0;
 
 	if (phy_rev_5ghz) {
-		printf("5Ghz PHY Revision: %-5s (0x%2x)\n",
+		printf("5Ghz PHY Revision: %-5s (0x%02x)\n",
 		       ath5k_hw_get_part_name(AR5K_VERSION_RAD, phy_rev_5ghz),
 		       phy_rev_5ghz);
 	}
 	if (phy_rev_2ghz) {
-		printf("2Ghz PHY Revision: %-5s (0x%2x)\n",
+		printf("2Ghz PHY Revision: %-5s (0x%02x)\n",
 		       ath5k_hw_get_part_name(AR5K_VERSION_RAD, phy_rev_2ghz),
 		       phy_rev_2ghz);
 	}
@@ -2060,7 +2059,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* print current GPIO settings */
-	printf("GPIO registers: CR %08x DO %08x DI %08x\n",
+	printf("GPIO registers: CR 0x%08x, DO 0x%08x, DI 0x%08x\n",
 	       AR5K_REG_READ(AR5K_GPIOCR), AR5K_REG_READ(AR5K_GPIODO),
 	       AR5K_REG_READ(AR5K_GPIODI));
 
