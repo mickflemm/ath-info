@@ -1403,7 +1403,7 @@ static void dump_capabilities(struct ath5k_eeprom_info *ee)
 	else
 		printf(" no  |");
 
-	printf(" Turboa disabled: ");
+	printf(" Turbo-A disabled:");
 	if (turboa_dis)
 		printf(" yes |\n");
 	else
@@ -1415,7 +1415,7 @@ static void dump_capabilities(struct ath5k_eeprom_info *ee)
 	else
 		printf(" no  |");
 
-	printf(" Turbog disabled: ");
+	printf(" Turbo-G disabled:");
 	if (turbog_dis)
 		printf(" yes |\n");
 	else
@@ -1427,7 +1427,7 @@ static void dump_capabilities(struct ath5k_eeprom_info *ee)
 	else
 		printf(" no  |");
 
-	printf(" 2GHzXR disabled: ");
+	printf(" 2GHz XR disabled:");
 	if (xr2_dis)
 		printf(" yes |\n");
 	else
@@ -1439,7 +1439,7 @@ static void dump_capabilities(struct ath5k_eeprom_info *ee)
 	else
 		printf(" no  |");
 
-	printf(" 5GHzXR disabled: ");
+	printf(" 5GHz XR disabled:");
 	if (xr5_dis)
 		printf(" yes |\n");
 	else
@@ -2023,14 +2023,14 @@ int main(int argc, char *argv[])
 	printf("/=========================================================\\\n");
 	printf("|          Calibration data common for all modes          |\n");
 	printf("|=========================================================|\n");
-	printf("|          CCK/OFDM gain delta:            %02i             |\n", ee->ee_cck_ofdm_gain_delta);
-	printf("|          CCK/OFDM power delta:           %02i             |\n", ee->ee_cck_ofdm_power_delta);
-	printf("|          Scaled CCK delta:               %02i             |\n", ee->ee_scaled_cck_delta);
-	printf("|          2Ghz Antenna gain:              %02i             |\n", AR5K_EEPROM_ANT_GAIN_2GHZ(ee->ee_ant_gain));
-	printf("|          5Ghz Antenna gain:              %02i             |\n", AR5K_EEPROM_ANT_GAIN_5GHZ(ee->ee_ant_gain));
-	printf("|          Turbo 2W maximum dbm:           %02i             |\n", AR5K_EEPROM_HDR_T_5GHZ_DBM(ee->ee_header));
-	printf("|          Target power start:             %03x            |\n", AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1));
-	printf("|          EAR Start:                      %03x            |\n", AR5K_EEPROM_EARSTART(ee->ee_misc0));
+	printf("|          CCK/OFDM gain delta:            %2i             |\n", ee->ee_cck_ofdm_gain_delta);
+	printf("|          CCK/OFDM power delta:           %2i             |\n", ee->ee_cck_ofdm_power_delta);
+	printf("|          Scaled CCK delta:               %2i             |\n", ee->ee_scaled_cck_delta);
+	printf("|          2Ghz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_2GHZ(ee->ee_ant_gain));
+	printf("|          5Ghz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_5GHZ(ee->ee_ant_gain));
+	printf("|          Turbo 2W maximum dbm:           %2i             |\n", AR5K_EEPROM_HDR_T_5GHZ_DBM(ee->ee_header));
+	printf("|          Target power start:          0x%03x             |\n", AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1));
+	printf("|          EAR Start:                   0x%03x             |\n", AR5K_EEPROM_EARSTART(ee->ee_misc0));
 	printf("\\=========================================================/\n");
 
 	printf("\n");
