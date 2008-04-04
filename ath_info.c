@@ -381,7 +381,7 @@ enum ath5k_ant_setting {
 };
 
 /* Per channel calibration data, used for power table setup */
-struct ath5k_chan_pcal_info{
+struct ath5k_chan_pcal_info {
 	u_int16_t	freq; /* Frequency */
 	/* Power levels in dbm * 4 units */
 	int16_t		pwr_x0[AR5K_EEPROM_N_XPD0_POINTS];
@@ -536,8 +536,8 @@ static u_int32_t ath5k_hw_bitswap(u_int32_t val, u_int bits)
 /*
  * Get the PHY Chip revision
  */
-static u_int16_t
-ath5k_hw_radio_revision(u_int16_t mac_version, void *mem, u_int8_t chip)
+static u_int16_t ath5k_hw_radio_revision(u_int16_t mac_version, void *mem,
+					 u_int8_t chip)
 {
 	int i;
 	u_int32_t srev;
@@ -585,9 +585,8 @@ ath5k_hw_radio_revision(u_int16_t mac_version, void *mem, u_int8_t chip)
 /*
  * Write to EEPROM
  */
-static int
-ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
-		      u_int8_t mac_version)
+static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
+				 u_int8_t mac_version)
 {
 	u_int32_t status, timeout;
 
@@ -637,9 +636,8 @@ ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
 /*
  * Read from EEPROM
  */
-static int
-ath5k_hw_eeprom_read(void *mem, u_int32_t offset, u_int16_t *data,
-		     u_int8_t mac_version)
+static int ath5k_hw_eeprom_read(void *mem, u_int32_t offset, u_int16_t *data,
+				u_int8_t mac_version)
 {
 	u_int32_t status, timeout;
 
@@ -672,7 +670,8 @@ ath5k_hw_eeprom_read(void *mem, u_int32_t offset, u_int16_t *data,
 /*
  * Translate binary channel representation in EEPROM to frequency
  */
-static u_int16_t ath5k_eeprom_bin2freq(struct ath5k_eeprom_info *ee, u_int16_t bin, unsigned int mode)
+static u_int16_t ath5k_eeprom_bin2freq(struct ath5k_eeprom_info *ee,
+				       u_int16_t bin, unsigned int mode)
 {
 	u_int16_t val;
 
@@ -698,11 +697,9 @@ static u_int16_t ath5k_eeprom_bin2freq(struct ath5k_eeprom_info *ee, u_int16_t b
 /*
  * Read antenna infos from eeprom
  */
-static int ath5k_eeprom_read_ants(void *mem,
-		u_int8_t mac_version,
-		struct ath5k_eeprom_info *ee,
-		u_int32_t *offset,
-		unsigned int mode)
+static int ath5k_eeprom_read_ants(void *mem, u_int8_t mac_version,
+				  struct ath5k_eeprom_info *ee,
+				  u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
 	u_int16_t val;
@@ -759,11 +756,9 @@ static int ath5k_eeprom_read_ants(void *mem,
 /*
  * Read supported modes from eeprom
  */
-static int ath5k_eeprom_read_modes(void *mem,
-		u_int8_t mac_version,
-		struct ath5k_eeprom_info *ee,
-		u_int32_t *offset,
-		unsigned int mode)
+static int ath5k_eeprom_read_modes(void *mem, u_int8_t mac_version,
+				   struct ath5k_eeprom_info *ee,
+				   u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
 	u_int16_t val;
@@ -826,7 +821,7 @@ static int ath5k_eeprom_read_modes(void *mem,
 	}
 
 	if (ee->ee_version >= AR5K_EEPROM_VERSION_4_0 &&
-			mode == AR5K_EEPROM_MODE_11A) {
+	    mode == AR5K_EEPROM_MODE_11A) {
 		ee->ee_i_cal[mode] = (val >> 8) & 0x3f;
 		ee->ee_q_cal[mode] = (val >> 3) & 0x1f;
 	}
@@ -846,20 +841,18 @@ static int ath5k_eeprom_read_modes(void *mem,
  * This doesn't work on 2413+ chips (eeprom versions >= 5),
  * i only tested it on 5213 + 5112. This is still work in progress...
  */
-static int ath5k_eeprom_read_pcal_info(void *mem,
-		u_int8_t mac_version,
-		struct ath5k_eeprom_info *ee,
-		u_int32_t *offset,
-		unsigned int mode)
+static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
+				       struct ath5k_eeprom_info *ee,
+				       u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
-	unsigned int i,c;
+	unsigned int i, c;
 	int ret;
 	u_int16_t val;
-	struct ath5k_chan_pcal_info*	chan_pcal_info;
+	struct ath5k_chan_pcal_info *chan_pcal_info;
 	u_int16_t cal_piers;
 
-	switch(mode){
+	switch (mode) {
 	case AR5K_EEPROM_MODE_11A:
 		chan_pcal_info = ee->ee_pwr_cal_a;
 		cal_piers = ee->ee_cal_piers_a;
@@ -876,10 +869,9 @@ static int ath5k_eeprom_read_pcal_info(void *mem,
 		return -EINVAL;
 	}
 
-	for(i = 0; i < cal_piers; i++){	
-
+	for (i = 0; i < cal_piers; i++) {
 		/* Power values in dbm * 4 */
-		for( c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++){
+		for (c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++) {
 			AR5K_EEPROM_READ(o++, val);
 			chan_pcal_info[i].pwr_x0[c] = (val & 0xff);
 			chan_pcal_info[i].pwr_x0[++c] = ((val >> 8) & 0xff);
@@ -899,7 +891,7 @@ static int ath5k_eeprom_read_pcal_info(void *mem,
 		chan_pcal_info[i].pwr_x3[1] = ((val >> 8) & 0xff);
 
 		AR5K_EEPROM_READ(o++, val);
-		chan_pcal_info[i].pwr_x3[2] = (val & 0xff);	
+		chan_pcal_info[i].pwr_x3[2] = (val & 0xff);
 		/* It's weird but they puted it here, that's the
 		   pcdac starting step */
 		chan_pcal_info[i].pcdac_x0[0] = ((val >> 8) & 0xff);
@@ -916,7 +908,6 @@ static int ath5k_eeprom_read_pcal_info(void *mem,
 		chan_pcal_info[i].pcdac_x0[1] += chan_pcal_info[i].pcdac_x0[0];
 		chan_pcal_info[i].pcdac_x0[2] += chan_pcal_info[i].pcdac_x0[1];
 		chan_pcal_info[i].pcdac_x0[3] += chan_pcal_info[i].pcdac_x0[2];
-		
 	}
 
 	return 0;
@@ -925,9 +916,8 @@ static int ath5k_eeprom_read_pcal_info(void *mem,
 /*
  * Initialize eeprom & capabilities structs
  */
-static int ath5k_eeprom_init(void *mem,
-		u_int8_t mac_version,
-		struct ath5k_eeprom_info *ee)
+static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
+			     struct ath5k_eeprom_info *ee)
 {
 	unsigned int mode, i;
 	int ret;
@@ -967,8 +957,7 @@ static int ath5k_eeprom_init(void *mem,
 	}
 #endif
 
-	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_ANT_GAIN(ee->ee_version),
-	    ee_ant_gain);
+	AR5K_EEPROM_READ_HDR(AR5K_EEPROM_ANT_GAIN(ee->ee_version), ee_ant_gain);
 
 	if (ee->ee_version >= AR5K_EEPROM_VERSION_4_0) {
 		AR5K_EEPROM_READ_HDR(AR5K_EEPROM_MISC0, ee_misc0);
@@ -994,17 +983,17 @@ static int ath5k_eeprom_init(void *mem,
 	for (i = 0; i < AR5K_EEPROM_N_CTLS(ee->ee_version); i++) {
 		AR5K_EEPROM_READ(offset++, val);
 
-		if(((val >> 8) & 0xff) == 0)
+		if (((val >> 8) & 0xff) == 0)
 			break;
 
 		ee->ee_ctl[i] = (val >> 8) & 0xff;
-		ee->ee_ctls ++;
+		ee->ee_ctls++;
 
-		if((val & 0xff) == 0)
+		if ((val & 0xff) == 0)
 			break;
 
 		ee->ee_ctl[i + 1] = val & 0xff;
-		ee->ee_ctls ++;
+		ee->ee_ctls++;
 	}
 
 	/*
@@ -1070,16 +1059,16 @@ static int ath5k_eeprom_init(void *mem,
 
 		ee->ee_pwr_cal_b[0].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_b ++;
+		ee->ee_cal_piers_b++;
 
 		ee->ee_pwr_cal_b[1].freq =
 			ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, mode);
-		ee->ee_cal_piers_b ++;
+		ee->ee_cal_piers_b++;
 
 		AR5K_EEPROM_READ(offset++, val);
 		ee->ee_pwr_cal_b[2].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_b ++;
+		ee->ee_cal_piers_b++;
 
 	}
 
@@ -1112,11 +1101,11 @@ static int ath5k_eeprom_init(void *mem,
 
 		ee->ee_pwr_cal_g[0].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_g ++;
+		ee->ee_cal_piers_g++;
 
 		ee->ee_pwr_cal_g[1].freq =
 			ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, mode);
-		ee->ee_cal_piers_g ++;
+		ee->ee_cal_piers_g++;
 
 		AR5K_EEPROM_READ(offset++, val);
 		ee->ee_turbo_max_power[mode] = val & 0x7f;
@@ -1125,7 +1114,7 @@ static int ath5k_eeprom_init(void *mem,
 		AR5K_EEPROM_READ(offset++, val);
 		ee->ee_pwr_cal_g[2].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_g ++;
+		ee->ee_cal_piers_g++;
 
 		if (ee->ee_version >= AR5K_EEPROM_VERSION_4_1)
 			ee->ee_margin_tx_rx[mode] = (val >> 8) & 0x3f;
@@ -1145,22 +1134,22 @@ static int ath5k_eeprom_init(void *mem,
 	 */
 	offset = AR5K_EEPROM_CHANNELS_5GHZ(ee->ee_version);
 	ee->ee_cal_piers_a = 0;
-	for ( i = 0; i < AR5K_EEPROM_N_5GHZ_CHAN; i++){
+	for (i = 0; i < AR5K_EEPROM_N_5GHZ_CHAN; i++) {
 		AR5K_EEPROM_READ(offset++, val);
 
-		if((val & 0xff) == 0)
+		if ((val & 0xff) == 0)
 			break;
 
 		ee->ee_pwr_cal_a[i].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, AR5K_EEPROM_MODE_11A);
-		ee->ee_cal_piers_a ++;
+		ee->ee_cal_piers_a++;
 
-	 	if(((val >> 8) & 0xff) == 0)
+	 	if (((val >> 8) & 0xff) == 0)
 			break;
 
 		ee->ee_pwr_cal_a[++i].freq =
 			ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, AR5K_EEPROM_MODE_11A);
-		ee->ee_cal_piers_a ++;
+		ee->ee_cal_piers_a++;
 
 	}
 
@@ -1223,9 +1212,8 @@ static const char *eeprom_addr2name(int addr)
 	return "<unknown>";
 }				/* eeprom_addr2name */
 
-static int
-do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
-	       int mac_version)
+static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
+			  int mac_version)
 {
 #define MAX_NR_WRITES 16
 	struct {
@@ -1475,47 +1463,47 @@ static void dump_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
 	int i;
 
 	printf("|=========================================================|\n");
-	printf("| I power:              0x%02x |",ee->ee_i_cal[mode]);
-	printf(" Q power:              0x%02x |\n",ee->ee_q_cal[mode]);
-	printf("| Use fixed bias:       0x%02x |",ee->ee_fixed_bias[mode]);
-	printf(" Max turbo power:      0x%02x |\n",ee->ee_turbo_max_power[mode]);
-	printf("| Max XR power:         0x%02x |",ee->ee_xr_power[mode]);
-	printf(" Switch Settling Time: 0x%02x |\n",ee->ee_switch_settling[mode]);
-	printf("| Tx/Rx attenuation:    0x%02x |",ee->ee_ant_tx_rx[mode]);
-	printf(" TX end to XLNA On:    0x%02x |\n",ee->ee_tx_end2xlna_enable[mode]);
-	printf("| TX end to XPA Off:    0x%02x |",ee->ee_tx_end2xpa_disable[mode]);
-	printf(" TX end to XPA On:     0x%02x |\n",ee->ee_tx_frm2xpa_enable[mode]);
-	printf("| 62db Threshold:       0x%02x |",ee->ee_thr_62[mode]);
-	printf(" XLNA gain:            0x%02x |\n",ee->ee_xlna_gain[mode]);
-	printf("| XPD:		        0x%02x |",ee->ee_xpd[mode]);
-	printf(" XPD gain:             0x%02x |\n",ee->ee_x_gain[mode]);
-	printf("| I gain:               0x%02x |",ee->ee_i_gain[mode]);
-	printf(" Tx/Rx margin:         0x%02x |\n",ee->ee_margin_tx_rx[mode]);
-	printf("| False detect backoff: 0x%02x |",ee->ee_false_detect[mode]);
-	printf(" Noise Floor Threshold: %3d |\n",ee->ee_noise_floor_thr[mode]);
-	printf("| ADC desired size:      %3d |",ee->ee_adc_desired_size[mode]);
-	printf(" PGA desired size:      %3d |\n",ee->ee_pga_desired_size[mode]);
+	printf("| I power:              0x%02x |", ee->ee_i_cal[mode]);
+	printf(" Q power:              0x%02x |\n", ee->ee_q_cal[mode]);
+	printf("| Use fixed bias:       0x%02x |", ee->ee_fixed_bias[mode]);
+	printf(" Max turbo power:      0x%02x |\n", ee->ee_turbo_max_power[mode]);
+	printf("| Max XR power:         0x%02x |", ee->ee_xr_power[mode]);
+	printf(" Switch Settling Time: 0x%02x |\n", ee->ee_switch_settling[mode]);
+	printf("| Tx/Rx attenuation:    0x%02x |", ee->ee_ant_tx_rx[mode]);
+	printf(" TX end to XLNA On:    0x%02x |\n", ee->ee_tx_end2xlna_enable[mode]);
+	printf("| TX end to XPA Off:    0x%02x |", ee->ee_tx_end2xpa_disable[mode]);
+	printf(" TX end to XPA On:     0x%02x |\n", ee->ee_tx_frm2xpa_enable[mode]);
+	printf("| 62db Threshold:       0x%02x |", ee->ee_thr_62[mode]);
+	printf(" XLNA gain:            0x%02x |\n", ee->ee_xlna_gain[mode]);
+	printf("| XPD:		        0x%02x |", ee->ee_xpd[mode]);
+	printf(" XPD gain:             0x%02x |\n", ee->ee_x_gain[mode]);
+	printf("| I gain:               0x%02x |", ee->ee_i_gain[mode]);
+	printf(" Tx/Rx margin:         0x%02x |\n", ee->ee_margin_tx_rx[mode]);
+	printf("| False detect backoff: 0x%02x |", ee->ee_false_detect[mode]);
+	printf(" Noise Floor Threshold: %3d |\n", ee->ee_noise_floor_thr[mode]);
+	printf("| ADC desired size:      %3d |", ee->ee_adc_desired_size[mode]);
+	printf(" PGA desired size:      %3d |\n", ee->ee_pga_desired_size[mode]);
 	printf("|=========================================================|\n");
-	for(i = 0; i < AR5K_EEPROM_N_PCDAC; i++){
-		printf("| Antenna control  %2i:  0x%02x |",i,ee->ee_ant_control[mode][i]);
+	for (i = 0; i < AR5K_EEPROM_N_PCDAC; i++) {
+		printf("| Antenna control  %2i:  0x%02x |", i, ee->ee_ant_control[mode][i]);
 		i++;
-		printf(" Antenna control  %2i:  0x%02x |\n",i,ee->ee_ant_control[mode][i]);
+		printf(" Antenna control  %2i:  0x%02x |\n", i, ee->ee_ant_control[mode][i]);
 	}
 	printf("|=========================================================|\n");
-	for(i = 0; i < AR5K_EEPROM_N_OBDB; i++){
-		printf("| Octave Band %i:          %2i |",i,ee->ee_ob[mode][i]);
-		printf(" db %i:                   %2i |\n",i,ee->ee_db[mode][i]);
+	for (i = 0; i < AR5K_EEPROM_N_OBDB; i++) {
+		printf("| Octave Band %i:          %2i |", i, ee->ee_ob[mode][i]);
+		printf(" db %i:                   %2i |\n", i, ee->ee_db[mode][i]);
 	}
 	printf("\\=========================================================/\n");
 }
 
 static void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
 {
-	struct ath5k_chan_pcal_info*	chan_pcal_info;
+	struct ath5k_chan_pcal_info *chan_pcal_info;
 	u_int16_t cal_piers;
 	int i, c;
 
-	switch(mode){
+	switch (mode) {
 	case AR5K_EEPROM_MODE_11A:
 		chan_pcal_info = ee->ee_pwr_cal_a;
 		cal_piers = ee->ee_cal_piers_a;
@@ -1540,25 +1528,25 @@ static void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
 		char buf[16];
 
 		printf("|======|=======|=======|=======|=======|=======|=======|=======|=======|\n");
-		printf("| %4i |",chan_pcal_info[i].freq);
-		for( c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++){
-			printf(" %2i.%02i |",chan_pcal_info[i].pwr_x0[c] /4,
-					chan_pcal_info[i].pwr_x0[c] % 4);
- 		}
-		for( c = 0; c < AR5K_EEPROM_N_XPD3_POINTS; c++){
-			printf(" %2i.%02i |",chan_pcal_info[i].pwr_x3[c] /4,
-					chan_pcal_info[i].pwr_x3[c] % 4);
+		printf("| %4i |", chan_pcal_info[i].freq);
+		for (c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++) {
+			printf(" %2i.%02i |", chan_pcal_info[i].pwr_x0[c] / 4,
+			       chan_pcal_info[i].pwr_x0[c] % 4);
 		}
-		printf(" %2i.%02i |\n",chan_pcal_info[i].max_pwr /4,
+		for (c = 0; c < AR5K_EEPROM_N_XPD3_POINTS; c++) {
+			printf(" %2i.%02i |", chan_pcal_info[i].pwr_x3[c] / 4,
+			       chan_pcal_info[i].pwr_x3[c] % 4);
+		}
+		printf(" %2i.%02i |\n", chan_pcal_info[i].max_pwr / 4,
 				chan_pcal_info[i].max_pwr % 4);
 
 		printf("|      |");
-		for( c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++){
+		for (c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++) {
 			snprintf(buf, sizeof(buf), "[%i]",
 				 chan_pcal_info[i].pcdac_x0[c]);
 			printf("%6s |", buf);
 		}
-		for( c = 0; c < AR5K_EEPROM_N_XPD3_POINTS; c++){
+		for (c = 0; c < AR5K_EEPROM_N_XPD3_POINTS; c++) {
 			snprintf(buf, sizeof(buf), "[%i]",
 				 chan_pcal_info[i].pcdac_x3[c]);
 			printf("%6s |", buf);
@@ -1575,7 +1563,7 @@ static u_int32_t extend_tu(u_int32_t base_tu, u_int32_t val, u_int32_t mask)
 
 	result = (base_tu & ~mask) | (val & mask);
 	if ((base_tu & mask)  > (val & mask))
-		result += mask+1;
+		result += mask + 1;
 	return result;
 }
 
@@ -1617,38 +1605,35 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 					AR5K_BEACON_5210 : AR5K_BEACON_5211)
 
 #define AR5K_LAST_TSTP			0x8080
-	
+
 	const int timer_mask = 0xffff;
 
 	u_int32_t timer0, timer1, timer2, timer3, now_tu;
 	u_int32_t timer0_tu, timer1_tu, timer2_tu, timer3_tu;
 	u_int64_t now_tsf;
-	
+
 	timer0 = AR5K_REG_READ(AR5K_TIMER0);		/* 0x0000ffff */
 	timer1 = AR5K_REG_READ(AR5K_TIMER1_5211);	/* 0x0007ffff */
 	timer2 = AR5K_REG_READ(AR5K_TIMER2_5211);	/* 0x?1ffffff */
 	timer3 = AR5K_REG_READ(AR5K_TIMER3_5211);	/* 0x0000ffff */
-	
+
 	now_tsf = ((u_int64_t)AR5K_REG_READ(AR5K_TSF_U32_5211) << 32)
 		| (u_int64_t)AR5K_REG_READ(AR5K_TSF_L32_5211);
-	
+
 	now_tu = now_tsf >> 10;
-	
+
 	timer0_tu = extend_tu(now_tu, timer0, 0xffff);
 	printf("TIMER0 : 0x%8x TBTT : %5u TU:%8x\n", timer0,
 	       timer0 & timer_mask, timer0_tu);
-	timer1_tu = extend_tu(now_tu, timer1>>3, 0x7ffff>>3);
+	timer1_tu = extend_tu(now_tu, timer1 >> 3, 0x7ffff >> 3);
 	printf("TIMER1 : 0x%8x DMAb : %5u TU:%8x(%d)\n", timer1,
-	       (timer1>>3) & timer_mask, timer1_tu,
-	       timer1_tu - timer0_tu);
-	timer2_tu = extend_tu(now_tu, timer2>>3, 0x1ffffff>>3);
+	       (timer1 >> 3) & timer_mask, timer1_tu, timer1_tu - timer0_tu);
+	timer2_tu = extend_tu(now_tu, timer2 >> 3, 0x1ffffff >> 3);
 	printf("TIMER2 : 0x%8x SWBA : %5u TU:%8x(%d)\n", timer2,
-	       (timer2>>3) & timer_mask, timer2_tu,
-	       timer2_tu - timer0_tu);
+	       (timer2 >> 3) & timer_mask, timer2_tu, timer2_tu - timer0_tu);
 	timer3_tu = extend_tu(now_tu, timer3, 0xffff);
 	printf("TIMER3 : 0x%8x ATIM : %5u TU:%8x(%d)\n", timer3,
-	       timer3 & timer_mask, timer3_tu,
-	       timer3_tu - timer0_tu);
+	       timer3 & timer_mask, timer3_tu, timer3_tu - timer0_tu);
 	printf("TSF    : 0x%8llx TSFTU: %5u TU:%8x\n",
 	       (unsigned long long)now_tsf, now_tu & timer_mask, now_tu);
 
@@ -1679,15 +1664,15 @@ static void keycache_dump(void *mem, u_int16_t mac_version)
 
 	/* dump all 128 entries */
 	printf("Dumping keycache entries...\n");
-	for (i=0;i<AR5K_KEYTABLE_SIZE;i++) {
-		mac1 = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,7));
+	for (i = 0; i < AR5K_KEYTABLE_SIZE; i++) {
+		mac1 = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 7));
 		if (mac1 & AR5K_KEYTABLE_VALID) {
-			val0    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,0));
-			val1    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,1));
-			val2    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,2));
-			val3    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,3));
-			val4    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,4));
-			keytype = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,5));
+			val0    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 0));
+			val1    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 1));
+			val2    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 2));
+			val3    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 3));
+			val4    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 4));
+			keytype = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 5));
 			ant = keytype & 8;
 			keytype &= ~8;
 			switch (keytype) {
@@ -1699,7 +1684,7 @@ static void keycache_dump(void *mem, u_int16_t mac_version)
 			case 6: /* CCM    */ keylen = 128 / 8; break;
 			default:             keylen = 0;       break;
 			}
-			mac0 = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i,6));
+			mac0 = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 6));
 
 			printf("[%3u] keytype %d [%s%s%s%s%s%s%s%s] mac %02x:%02x:%02x:%02x:%02x:%02x key:%08x-%08x-%08x-%08x-%08x\n",
 			       i,
@@ -1728,30 +1713,30 @@ static void keycache_dump(void *mem, u_int16_t mac_version)
 static void keycache_copy(void *mem, u_int16_t mac_version, int idx)
 {
 	u_int32_t val0, val1, val2, val3, val4, keytype, mac0, mac1;
-	
+
 	printf("Copying keycache entry 0 to %d\n", idx);
 	if (idx < 0 || idx >= AR5K_KEYTABLE_SIZE) {
 		printf("invalid keycache index\n");
-		return ;
+		return;
 	}
 
-	val0    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,0));
-	val1    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,1));
-	val2    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,2));
-	val3    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,3));
-	val4    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,4));
-	keytype = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,5));
-	mac0    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,6));
-	mac1    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0,7));
+	val0    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 0));
+	val1    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 1));
+	val2    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 2));
+	val3    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 3));
+	val4    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 4));
+	keytype = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 5));
+	mac0    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 6));
+	mac1    = AR5K_REG_READ(AR5K_KEYTABLE_OFF(0, 7));
 
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,0), val0);
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,1), val1);
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,2), val2);
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,3), val3);
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,4), val4);
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,5), keytype);
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,6), mac0);
-	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx,7), mac1);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 0), val0);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 1), val1);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 2), val2);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 3), val3);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 4), val4);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 5), keytype);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 6), mac0);
+	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 7), mac1);
 }
 
 static void sta_id0_id1_dump(void *mem)
@@ -1975,19 +1960,19 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if(ath5k_eeprom_init(mem, mac_version, ee)){
+	if (ath5k_eeprom_init(mem, mac_version, ee)) {
 		printf("EEPROM Init failed\n");
 		return -1;
 	}
 
 	eeprom_size = AR5K_REG_MS(AR5K_REG_READ(AR5K_PCICFG),
-					AR5K_PCICFG_EESIZE);
+				  AR5K_PCICFG_EESIZE);
 
 	dev_type = AR5K_EEPROM_HDR_DEVICE(ee->ee_header);
 	eemap = AR5K_EEPROM_EEMAP(ee->ee_misc0);
 
 	/* 1 = ?? 2 = ?? 3 = card 4 = wmac */
-	printf("Device type:  %1i\n",dev_type);
+	printf("Device type:  %1i\n", dev_type);
 
 	if (AR5K_EEPROM_HDR_11A(ee->ee_header))
 		phy_rev_5ghz = ath5k_hw_radio_revision(mac_version, mem, 1);
@@ -2029,7 +2014,7 @@ int main(int argc, char *argv[])
 	} else
 		printf(" unknown |\n");
 
-	printf("| EEMAP:              %i |",eemap);
+	printf("| EEMAP:              %i |", eemap);
 
 	printf(" Reg. Domain:     0x%02X |\n", ee->ee_regdomain);
 
@@ -2039,39 +2024,39 @@ int main(int argc, char *argv[])
 	printf("/=========================================================\\\n");
 	printf("|          Calibration data common for all modes          |\n");
 	printf("|=========================================================|\n");
-	printf("|          CCK/OFDM gain delta:            %02i             |\n",ee->ee_cck_ofdm_gain_delta);
-	printf("|          CCK/OFDM power delta:           %02i             |\n",ee->ee_cck_ofdm_power_delta);
-	printf("|          Scaled CCK delta:               %02i             |\n",ee->ee_scaled_cck_delta);
-	printf("|          2Ghz Antenna gain:              %02i             |\n",AR5K_EEPROM_ANT_GAIN_2GHZ(ee->ee_ant_gain));
-	printf("|          5Ghz Antenna gain:              %02i             |\n",AR5K_EEPROM_ANT_GAIN_5GHZ(ee->ee_ant_gain));
-	printf("|          Turbo 2W maximum dbm:           %02i             |\n",AR5K_EEPROM_HDR_T_5GHZ_DBM(ee->ee_header));
-	printf("|          Target power start:             %03x            |\n",AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1));
-	printf("|          EAR Start:                      %03x            |\n",AR5K_EEPROM_EARSTART(ee->ee_misc0));
+	printf("|          CCK/OFDM gain delta:            %02i             |\n", ee->ee_cck_ofdm_gain_delta);
+	printf("|          CCK/OFDM power delta:           %02i             |\n", ee->ee_cck_ofdm_power_delta);
+	printf("|          Scaled CCK delta:               %02i             |\n", ee->ee_scaled_cck_delta);
+	printf("|          2Ghz Antenna gain:              %02i             |\n", AR5K_EEPROM_ANT_GAIN_2GHZ(ee->ee_ant_gain));
+	printf("|          5Ghz Antenna gain:              %02i             |\n", AR5K_EEPROM_ANT_GAIN_5GHZ(ee->ee_ant_gain));
+	printf("|          Turbo 2W maximum dbm:           %02i             |\n", AR5K_EEPROM_HDR_T_5GHZ_DBM(ee->ee_header));
+	printf("|          Target power start:             %03x            |\n", AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1));
+	printf("|          EAR Start:                      %03x            |\n", AR5K_EEPROM_EARSTART(ee->ee_misc0));
 	printf("\\=========================================================/\n");
 
 	printf("\n");
-	if (AR5K_EEPROM_HDR_11A(ee->ee_header)){
-	printf("/=========================================================\\\n");
-	printf("|          Calibration data for 802.11a operation         |\n");
-		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11A,ee);
-		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11A,ee);
-	printf("\n");
+	if (AR5K_EEPROM_HDR_11A(ee->ee_header)) {
+		printf("/=========================================================\\\n");
+		printf("|          Calibration data for 802.11a operation         |\n");
+		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11A, ee);
+		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11A, ee);
+		printf("\n");
 	}
 
-	if (AR5K_EEPROM_HDR_11B(ee->ee_header)){
-	printf("/=========================================================\\\n");
-	printf("|          Calibration data for 802.11b operation         |\n");
-		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11B,ee);
-		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11B,ee);
-	printf("\n");
+	if (AR5K_EEPROM_HDR_11B(ee->ee_header)) {
+		printf("/=========================================================\\\n");
+		printf("|          Calibration data for 802.11b operation         |\n");
+		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11B, ee);
+		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11B, ee);
+		printf("\n");
 	}
 
-	if (AR5K_EEPROM_HDR_11G(ee->ee_header)){
-	printf("/=========================================================\\\n");
-	printf("|          Calibration data for 802.11g operation         |\n");
-		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11G,ee);
-		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11G,ee);
-	printf("\n");
+	if (AR5K_EEPROM_HDR_11G(ee->ee_header)) {
+		printf("/=========================================================\\\n");
+		printf("|          Calibration data for 802.11g operation         |\n");
+		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11G, ee);
+		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11G, ee);
+		printf("\n");
 	}
 
 	/* print current GPIO settings */
@@ -2167,7 +2152,7 @@ int main(int argc, char *argv[])
 
 	sta_id0_id1_dump(mem);
 
-	for (i=0; i<timer_count; i++)
+	for (i = 0; i < timer_count; i++)
 		dump_timers_register(mem, mac_version);
 
 	if (do_keycache_dump)
