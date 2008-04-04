@@ -1626,13 +1626,13 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 	printf("TIMER0: 0x%08x, TBTT: %5u, TU: 0x%08x\n", timer0,
 	       timer0 & timer_mask, timer0_tu);
 	timer1_tu = extend_tu(now_tu, timer1 >> 3, 0x7ffff >> 3);
-	printf("TIMER1: 0x%08x, DMAb: %5u, TU: 0x%08x (%d)\n", timer1,
+	printf("TIMER1: 0x%08x, DMAb: %5u, TU: 0x%08x (%+d)\n", timer1,
 	       (timer1 >> 3) & timer_mask, timer1_tu, timer1_tu - timer0_tu);
 	timer2_tu = extend_tu(now_tu, timer2 >> 3, 0x1ffffff >> 3);
-	printf("TIMER2: 0x%08x, SWBA: %5u, TU: 0x%08x (%d)\n", timer2,
+	printf("TIMER2: 0x%08x, SWBA: %5u, TU: 0x%08x (%+d)\n", timer2,
 	       (timer2 >> 3) & timer_mask, timer2_tu, timer2_tu - timer0_tu);
 	timer3_tu = extend_tu(now_tu, timer3, 0xffff);
-	printf("TIMER3: 0x%08x, ATIM: %5u, TU: 0x%08x (%d)\n", timer3,
+	printf("TIMER3: 0x%08x, ATIM: %5u, TU: 0x%08x (%+d)\n", timer3,
 	       timer3 & timer_mask, timer3_tu, timer3_tu - timer0_tu);
 	printf("TSF: 0x%016llx, TSFTU: %5u, TU: 0x%08x\n",
 	       (unsigned long long)now_tsf, now_tu & timer_mask, now_tu);
