@@ -383,10 +383,10 @@ enum ath5k_ant_setting {
 /* Per channel calibration data, used for power table setup */
 struct ath5k_chan_pcal_info {
 	u_int16_t	freq; /* Frequency */
-	/* Power levels in dbm * 4 units */
+	/* Power levels in dBm * 4 units */
 	int16_t		pwr_x0[AR5K_EEPROM_N_XPD0_POINTS];
 	int16_t		pwr_x3[AR5K_EEPROM_N_XPD3_POINTS];
-	/* PCDAC tables in dbm * 2 units */
+	/* PCDAC tables in dBm * 2 units */
 	u_int16_t	pcdac_x0[AR5K_EEPROM_N_XPD0_POINTS];
 	u_int16_t	pcdac_x3[AR5K_EEPROM_N_XPD3_POINTS];
 	/* Max available power */
@@ -870,14 +870,14 @@ static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
 	}
 
 	for (i = 0; i < cal_piers; i++) {
-		/* Power values in dbm * 4 */
+		/* Power values in dBm * 4 */
 		for (c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++) {
 			AR5K_EEPROM_READ(o++, val);
 			chan_pcal_info[i].pwr_x0[c] = (val & 0xff);
 			chan_pcal_info[i].pwr_x0[++c] = ((val >> 8) & 0xff);
 		}
 
-		/* Pcdac steps (dbm * 2) */
+		/* Pcdac steps (dBm * 2) */
 		AR5K_EEPROM_READ(o++, val);
 		chan_pcal_info[i].pcdac_x0[1] = (val & 0x1f);
 		chan_pcal_info[i].pcdac_x0[2] = ((val >> 5) & 0x1f);
@@ -2028,7 +2028,7 @@ int main(int argc, char *argv[])
 	printf("|          Scaled CCK delta:               %2i             |\n", ee->ee_scaled_cck_delta);
 	printf("|          2Ghz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_2GHZ(ee->ee_ant_gain));
 	printf("|          5Ghz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_5GHZ(ee->ee_ant_gain));
-	printf("|          Turbo 2W maximum dbm:           %2i             |\n", AR5K_EEPROM_HDR_T_5GHZ_DBM(ee->ee_header));
+	printf("|          Turbo 2W maximum dBm:           %2i             |\n", AR5K_EEPROM_HDR_T_5GHZ_DBM(ee->ee_header));
 	printf("|          Target power start:          0x%03x             |\n", AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1));
 	printf("|          EAR Start:                   0x%03x             |\n", AR5K_EEPROM_EARSTART(ee->ee_misc0));
 	printf("\\=========================================================/\n");
