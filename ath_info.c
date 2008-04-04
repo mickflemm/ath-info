@@ -1395,7 +1395,7 @@ static void dump_capabilities(struct ath5k_eeprom_info *ee)
 	xr2_dis = AR5K_EEPROM_HDR_XR2_DIS(ee->ee_misc0);
 	xr5_dis = AR5K_EEPROM_HDR_XR5_DIS(ee->ee_misc0);
 
-	printf("-================= Capabilities ================-\n");
+	printf("|================= Capabilities ================|\n");
 
 	printf("| 802.11a Support: ");
 	if (has_a)
@@ -1455,7 +1455,7 @@ static void dump_capabilities(struct ath5k_eeprom_info *ee)
 		printf("                       |\n");
 	}
 
-	printf("-===============================================-\n");
+	printf("\\===============================================/\n");
 }
 
 static void dump_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
@@ -1995,7 +1995,7 @@ int main(int argc, char *argv[])
 	}
 
 	printf("\n");
-	printf("-============== EEPROM Information =============-\n");
+	printf("/============== EEPROM Information =============\\\n");
 	printf("| EEPROM Version:   %1x.%1x |",
 	       (ee->ee_version & 0xF000) >> 12, ee->ee_version & 0xFFF);
 
