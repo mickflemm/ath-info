@@ -1475,7 +1475,7 @@ static void dump_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
 	printf(" TX end to XPA On:     0x%02x |\n", ee->ee_tx_frm2xpa_enable[mode]);
 	printf("| 62db Threshold:       0x%02x |", ee->ee_thr_62[mode]);
 	printf(" XLNA gain:            0x%02x |\n", ee->ee_xlna_gain[mode]);
-	printf("| XPD:		        0x%02x |", ee->ee_xpd[mode]);
+	printf("| XPD:                  0x%02x |", ee->ee_xpd[mode]);
 	printf(" XPD gain:             0x%02x |\n", ee->ee_x_gain[mode]);
 	printf("| I gain:               0x%02x |", ee->ee_i_gain[mode]);
 	printf(" Tx/Rx margin:         0x%02x |\n", ee->ee_margin_tx_rx[mode]);
