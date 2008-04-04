@@ -1532,12 +1532,14 @@ static void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
 		return;
 	}
 
-	printf("/====================Per channel power calibration=====================\\\n");
+	printf("/=================== Per channel power calibration ====================\\\n");
 	printf("| Freq | pwr_0 | pwr_1 | pwr_2 | pwr_3 |pwrx3_0|pwrx3_1|pwrx3_2|max_pwr|\n");
 	printf("|      | pcdac | pcdac | pcdac | pcdac | pcdac | pcdac | pcdac |       |\n");
 
-	for( i = 0; i < cal_piers; i++){
-	printf("|======|=======|=======|=======|=======|=======|=======|=======|=======|\n");
+	for (i = 0; i < cal_piers; i++) {
+		char buf[16];
+
+		printf("|======|=======|=======|=======|=======|=======|=======|=======|=======|\n");
 		printf("| %4i |",chan_pcal_info[i].freq);
 		for( c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++){
 			printf(" %2i.%02i |",chan_pcal_info[i].pwr_x0[c] /4,
@@ -1552,10 +1554,14 @@ static void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
 
 		printf("|      |");
 		for( c = 0; c < AR5K_EEPROM_N_XPD0_POINTS; c++){
-			printf("  [%02i] |",chan_pcal_info[i].pcdac_x0[c]);
+			snprintf(buf, sizeof(buf), "[%i]",
+				 chan_pcal_info[i].pcdac_x0[c]);
+			printf("%6s |", buf);
 		}
 		for( c = 0; c < AR5K_EEPROM_N_XPD3_POINTS; c++){
-			printf("  [%02i] |",chan_pcal_info[i].pcdac_x3[c]);
+			snprintf(buf, sizeof(buf), "[%i]",
+				 chan_pcal_info[i].pcdac_x3[c]);
+			printf("%6s |", buf);
 		}
 		printf("       |\n");
 
