@@ -393,6 +393,19 @@ struct ath5k_chan_pcal_info {
 	u_int16_t	max_pwr;
 };
 
+/* Per rate calibration data for each mode, used for power table setup */
+struct ath5k_rate_pcal_info {
+	u_int16_t	freq; /* Frequency */
+	/* Power level for 6-24Mbit/s rates */
+	u_int16_t	target_power_6to24;
+	/* Power level for 36Mbit rate */
+	u_int16_t	target_power_36;
+	/* Power level for 48Mbit rate */
+	u_int16_t	target_power_48;
+	/* Power level for 54Mbit rate */
+	u_int16_t	target_power_54;
+};
+
 /* Struct to hold EEPROM calibration data */
 struct ath5k_eeprom_info {
 
@@ -444,7 +457,13 @@ struct ath5k_eeprom_info {
 	struct ath5k_chan_pcal_info	ee_pwr_cal_b[AR5K_EEPROM_N_2GHZ_CHAN];
 	u_int16_t	ee_cal_piers_g;
 	struct ath5k_chan_pcal_info	ee_pwr_cal_g[AR5K_EEPROM_N_2GHZ_CHAN];
-	/* TODO: Per rate target power levels */
+	/* Per rate target power levels */
+	u_int16_t	ee_rate_target_pwr_num_a;
+	struct ath5k_rate_pcal_info	ee_rate_tpwr_a[AR5K_EEPROM_N_5GHZ_CHAN];
+	u_int16_t	ee_rate_target_pwr_num_b;
+	struct ath5k_rate_pcal_info	ee_rate_tpwr_b[AR5K_EEPROM_N_2GHZ_CHAN];
+	u_int16_t	ee_rate_target_pwr_num_g;
+	struct ath5k_rate_pcal_info	ee_rate_tpwr_g[AR5K_EEPROM_N_2GHZ_CHAN];
 
 	/* Conformance test limits (Unused) */
 	u_int16_t	ee_ctls;
@@ -455,7 +474,7 @@ struct ath5k_eeprom_info {
 	int8_t		ee_adc_desired_size[AR5K_EEPROM_N_MODES];
 	int8_t		ee_pga_desired_size[AR5K_EEPROM_N_MODES];
 
-	u_int32_t		ee_antenna[AR5K_EEPROM_N_MODES][AR5K_ANT_MAX];
+	u_int32_t	ee_antenna[AR5K_EEPROM_N_MODES][AR5K_ANT_MAX];
 };
 
 /*
@@ -907,6 +926,66 @@ static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
 		chan_pcal_info[i].pcdac_x0[3] += chan_pcal_info[i].pcdac_x0[2];
 	}
 
+	/* return new offset */
+	(*offset) = o;
+
+	return 0;
+}
+
+static int ath5k_eeprom_read_target_rate_pwr_info(void *mem, u_int8_t mac_version,
+						struct ath5k_eeprom_info *ee,
+						u_int32_t *offset, unsigned int mode)
+{
+	u_int32_t o = *offset;
+	u_int16_t val;
+	struct ath5k_rate_pcal_info *rate_pcal_info;
+	u_int16_t *rate_target_pwr_num;
+	int ret, i;
+
+	switch(mode){
+	case AR5K_EEPROM_MODE_11A:
+		rate_pcal_info = ee->ee_rate_tpwr_a;
+		ee->ee_rate_target_pwr_num_a = AR5K_EEPROM_N_5GHZ_CHAN;
+		rate_target_pwr_num = &ee->ee_rate_target_pwr_num_a;
+		break;
+	case AR5K_EEPROM_MODE_11B:
+		rate_pcal_info = ee->ee_rate_tpwr_b;
+		ee->ee_rate_target_pwr_num_b = AR5K_EEPROM_N_2GHZ_CHAN;
+		rate_target_pwr_num = &ee->ee_rate_target_pwr_num_b;
+		break;
+	case AR5K_EEPROM_MODE_11G:
+		rate_pcal_info = ee->ee_rate_tpwr_g;
+		ee->ee_rate_target_pwr_num_g = AR5K_EEPROM_N_2GHZ_CHAN;
+		rate_target_pwr_num = &ee->ee_rate_target_pwr_num_g;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	for ( i = 0; i < (*rate_target_pwr_num); i++){
+		AR5K_EEPROM_READ(o++, val);
+		rate_pcal_info[i].freq =
+			ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, mode);
+
+		rate_pcal_info[i].target_power_6to24 = ((val >> 2) & 0x3f);
+		rate_pcal_info[i].target_power_36 = (val << 4) & 0x3f;
+
+		AR5K_EEPROM_READ(o++, val);
+
+		if (rate_pcal_info[i].freq == AR5K_EEPROM_CHANNEL_DIS ||
+		val == 0) {
+			(*rate_target_pwr_num) = i;
+			break;
+		}
+
+		rate_pcal_info[i].target_power_36 |= (val >> 12) & 0xf;
+		rate_pcal_info[i].target_power_48 = ((val >> 6) & 0x3f);
+		rate_pcal_info[i].target_power_54 = (val & 0x3f);
+	}
+
+	/* return new offset */
+	(*offset) = o;
+
 	return 0;
 }
 
@@ -1056,17 +1135,19 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 
 		ee->ee_pwr_cal_b[0].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_b++;
+		if(ee->ee_pwr_cal_b[0].freq != AR5K_EEPROM_CHANNEL_DIS)
+			ee->ee_cal_piers_b++;
 
 		ee->ee_pwr_cal_b[1].freq =
 			ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, mode);
-		ee->ee_cal_piers_b++;
+		if(ee->ee_pwr_cal_b[1].freq != AR5K_EEPROM_CHANNEL_DIS)
+			ee->ee_cal_piers_b++;
 
 		AR5K_EEPROM_READ(offset++, val);
 		ee->ee_pwr_cal_b[2].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_b++;
-
+		if(ee->ee_pwr_cal_b[2].freq != AR5K_EEPROM_CHANNEL_DIS)
+			ee->ee_cal_piers_b++;
 	}
 
 	if (ee->ee_version >= AR5K_EEPROM_VERSION_4_1)
@@ -1098,11 +1179,13 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 
 		ee->ee_pwr_cal_g[0].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_g++;
+		if(ee->ee_pwr_cal_g[0].freq != AR5K_EEPROM_CHANNEL_DIS)
+			ee->ee_cal_piers_g++;
 
 		ee->ee_pwr_cal_g[1].freq =
 			ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, mode);
-		ee->ee_cal_piers_g++;
+		if(ee->ee_pwr_cal_g[1].freq != AR5K_EEPROM_CHANNEL_DIS)
+			ee->ee_cal_piers_g++;
 
 		AR5K_EEPROM_READ(offset++, val);
 		ee->ee_turbo_max_power[mode] = val & 0x7f;
@@ -1111,7 +1194,8 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 		AR5K_EEPROM_READ(offset++, val);
 		ee->ee_pwr_cal_g[2].freq =
 			ath5k_eeprom_bin2freq(ee, val & 0xff, mode);
-		ee->ee_cal_piers_g++;
+		if(ee->ee_pwr_cal_g[2].freq != AR5K_EEPROM_CHANNEL_DIS)
+			ee->ee_cal_piers_g++;
 
 		if (ee->ee_version >= AR5K_EEPROM_VERSION_4_1)
 			ee->ee_margin_tx_rx[mode] = (val >> 8) & 0x3f;
@@ -1164,6 +1248,21 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	ret = ath5k_eeprom_read_pcal_info(mem, mac_version, ee, &offset, mode);
 	if (ret)
 		return ret;
+
+	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1);
+	mode = AR5K_EEPROM_MODE_11A;
+	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, mac_version, ee, &offset, mode);
+	if (ret)
+		return ret;
+
+	/*
+	 *XXX: 802.11a seems ok, but b and g
+	 *     don't. We have to find correct offsets
+	 *     for b and g because they don't start
+	 *     after 802.11a as above ;-(
+	 *
+	 *TODO: b/g
+	 */
 
 	return 0;
 }
@@ -1552,6 +1651,51 @@ static void dump_power_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
 
 	}
 	printf("\\======================================================================/\n");
+}
+
+static void dump_rate_calinfo_for_mode(int mode, struct ath5k_eeprom_info *ee)
+{
+	int i;
+	struct ath5k_rate_pcal_info *rate_pcal_info;
+	u_int16_t rate_target_pwr_num;
+
+	switch(mode){
+	case AR5K_EEPROM_MODE_11A:
+		rate_pcal_info = ee->ee_rate_tpwr_a;
+		rate_target_pwr_num = ee->ee_rate_target_pwr_num_a;
+		break;
+	case AR5K_EEPROM_MODE_11B:
+		rate_pcal_info = ee->ee_rate_tpwr_b;
+		rate_target_pwr_num = ee->ee_rate_target_pwr_num_b;
+		break;
+	case AR5K_EEPROM_MODE_11G:
+		rate_pcal_info = ee->ee_rate_tpwr_g;
+		rate_target_pwr_num = ee->ee_rate_target_pwr_num_g;
+		break;
+	default:
+		return;
+	}
+
+	printf("/============== Per rate power calibration ===========\\\n");
+	if(mode == AR5K_EEPROM_MODE_11B)
+		printf("| Freq |   1Mbit/s  | 2Mbit/s  | 5.5Mbit/s | 11Mbit/s |\n");
+	else
+		printf("| Freq | 6-24Mbit/s | 36Mbit/s |  48Mbit/s | 54Mbit/s |\n");
+
+	for (i = 0; i < rate_target_pwr_num; i++) {
+
+		printf("|======|============|==========|===========|==========|\n");
+		printf("| %4i |", rate_pcal_info[i].freq);
+		printf("    %2i.%02i   |",rate_pcal_info[i].target_power_6to24 /2,
+					rate_pcal_info[i].target_power_6to24 % 2);
+		printf("  %2i.%02i   |",rate_pcal_info[i].target_power_36 /2,
+					rate_pcal_info[i].target_power_36 % 2);
+		printf("   %2i.%02i   |",rate_pcal_info[i].target_power_48 /2,
+					rate_pcal_info[i].target_power_48 % 2);
+		printf("  %2i.%02i   |\n",rate_pcal_info[i].target_power_54 /2,
+					rate_pcal_info[i].target_power_54 % 2);
+	}
+	printf("\\=====================================================/\n");
 }
 
 static u_int32_t extend_tu(u_int32_t base_tu, u_int32_t val, u_int32_t mask)
@@ -2035,6 +2179,7 @@ int main(int argc, char *argv[])
 		printf("/=========================================================\\\n");
 		printf("|          Calibration data for 802.11a operation         |\n");
 		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11A, ee);
+		dump_rate_calinfo_for_mode(AR5K_EEPROM_MODE_11A, ee);
 		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11A, ee);
 		printf("\n");
 	}
