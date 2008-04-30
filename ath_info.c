@@ -75,13 +75,13 @@ struct ath5k_srev_name {
 #define AR5K_SREV_MAC_AR5213A	0x59
 #define AR5K_SREV_MAC_AR2413	0x78
 #define AR5K_SREV_MAC_AR2414	0x79
-#define	AR5K_SREV_MAC_AR2424	0xa0
-#define	AR5K_SREV_MAC_AR5424	0xa3
-#define	AR5K_SREV_MAC_AR5413	0xa4
+#define AR5K_SREV_MAC_AR2424	0xa0
+#define AR5K_SREV_MAC_AR5424	0xa3
+#define AR5K_SREV_MAC_AR5413	0xa4
 #define AR5K_SREV_MAC_AR5414	0xa5
-#define	AR5K_SREV_MAC_AR5416	0xc0
-#define	AR5K_SREV_MAC_AR5418	0xca
-#define	AR5K_SREV_MAC_AR2425	0xe0
+#define AR5K_SREV_MAC_AR5416	0xc0
+#define AR5K_SREV_MAC_AR5418	0xca
+#define AR5K_SREV_MAC_AR2425	0xe0
 
 /* Known PHY revision numbers */
 #define AR5K_SREV_PHY_5110	0x00
@@ -94,8 +94,8 @@ struct ath5k_srev_name {
 #define AR5K_SREV_PHY_2112A	0x45
 #define AR5K_SREV_PHY_SC0	0x56	/* Found on 2413/2414 */
 #define AR5K_SREV_PHY_SC1	0x63	/* Found on 5413/5414 */
-#define	AR5K_SREV_PHY_SC2	0xa2	/* Found on 2424/5424 */
-#define	AR5K_SREV_PHY_5133	0xc0	/* MIMO found on 5418 */
+#define AR5K_SREV_PHY_SC2	0xa2	/* Found on 2424/5424 */
+#define AR5K_SREV_PHY_5133	0xc0	/* MIMO found on 5418 */
 
 static const struct ath5k_srev_name ath5k_mac_names[] = {
 	{"5210", AR5K_SREV_MAC_AR5210},
@@ -143,20 +143,20 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
 /*
  * PHY chip revision register
  */
-#define	AR5K_PHY_CHIP_ID		0x9818
+#define AR5K_PHY_CHIP_ID		0x9818
 
 /*
  * PHY register
  */
-#define	AR5K_PHY_BASE			0x9800
-#define	AR5K_PHY(_n)			(AR5K_PHY_BASE + ((_n) << 2))
+#define AR5K_PHY_BASE			0x9800
+#define AR5K_PHY(_n)			(AR5K_PHY_BASE + ((_n) << 2))
 #define AR5K_PHY_SHIFT_2GHZ		0x00004007
 #define AR5K_PHY_SHIFT_5GHZ		0x00000007
 
 #define AR5K_RESET_CTL		0x4000	/* Register Address */
 #define AR5K_RESET_CTL_PCU	0x00000001	/* Protocol Control Unit reset */
 #define AR5K_RESET_CTL_DMA	0x00000002	/* DMA (Rx/Tx) reset -5210 only */
-#define	AR5K_RESET_CTL_BASEBAND	0x00000002	/* Baseband reset (5211/5212) */
+#define AR5K_RESET_CTL_BASEBAND	0x00000002	/* Baseband reset (5211/5212) */
 #define AR5K_RESET_CTL_MAC	0x00000004	/* MAC reset (PCU+Baseband?) -5210 only */
 #define AR5K_RESET_CTL_PHY	0x00000008	/* PHY reset -5210 only */
 #define AR5K_RESET_CTL_PCI	0x00000010	/* PCI Core reset (interrupts etc) */
@@ -254,8 +254,8 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
 /* Misc values available since EEPROM 4.0 */
 #define AR5K_EEPROM_MISC0		AR5K_EEPROM_INFO(4)
 #define AR5K_EEPROM_EARSTART(_v)	((_v) & 0xfff)
-#define	AR5K_EEPROM_HDR_XR2_DIS(_v)	(((_v) >> 12) & 0x1)
-#define	AR5K_EEPROM_HDR_XR5_DIS(_v)	(((_v) >> 13) & 0x1)
+#define AR5K_EEPROM_HDR_XR2_DIS(_v)	(((_v) >> 12) & 0x1)
+#define AR5K_EEPROM_HDR_XR5_DIS(_v)	(((_v) >> 13) & 0x1)
 #define AR5K_EEPROM_EEMAP(_v)		(((_v) >> 14) & 0x3)
 #define AR5K_EEPROM_MISC1		AR5K_EEPROM_INFO(5)
 #define AR5K_EEPROM_TARGET_PWRSTART(_v)	((_v) & 0xfff)
@@ -292,7 +292,7 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
  */
 #define AR5K_EEPROM_DATA_5211	0x6004
 #define AR5K_EEPROM_DATA_5210	0x6800
-#define	AR5K_EEPROM_DATA	(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_EEPROM_DATA	(mac_version == AR5K_SREV_MAC_AR5210 ? \
 				AR5K_EEPROM_DATA_5210 : AR5K_EEPROM_DATA_5211)
 
 /*
@@ -308,7 +308,7 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
  */
 #define AR5K_EEPROM_STAT_5210	0x6c00			/* Register Address [5210] */
 #define AR5K_EEPROM_STAT_5211	0x600c			/* Register Address [5211+] */
-#define	AR5K_EEPROM_STATUS	(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_EEPROM_STATUS	(mac_version == AR5K_SREV_MAC_AR5210 ? \
 				AR5K_EEPROM_STAT_5210 : AR5K_EEPROM_STAT_5211)
 #define AR5K_EEPROM_STAT_RDERR	0x00000001	/* EEPROM read failed */
 #define AR5K_EEPROM_STAT_RDDONE	0x00000002	/* EEPROM read successful */
@@ -1710,37 +1710,37 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 {
 #define AR5K_TIMER0_5210		0x802c	/* next TBTT */
 #define AR5K_TIMER0_5211		0x8028
-#define AR5K_TIMER0			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_TIMER0			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER0_5210 : AR5K_TIMER0_5211)
 
 #define AR5K_TIMER1_5210		0x8030	/* next DMA beacon */
 #define AR5K_TIMER1_5211		0x802c
-#define AR5K_TIMER1			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_TIMER1			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER1_5210 : AR5K_TIMER1_5211)
 
 #define AR5K_TIMER2_5210		0x8034	/* next SWBA interrupt */
 #define AR5K_TIMER2_5211		0x8030
-#define AR5K_TIMER2			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_TIMER2			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER2_5210 : AR5K_TIMER2_5211)
 
 #define AR5K_TIMER3_5210		0x8038	/* next ATIM window */
 #define AR5K_TIMER3_5211		0x8034
-#define AR5K_TIMER3			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_TIMER3			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER3_5210 : AR5K_TIMER3_5211)
 
 #define AR5K_TSF_L32_5210		0x806c	/* TSF (lower 32 bits) */
 #define AR5K_TSF_L32_5211		0x804c
-#define AR5K_TSF_L32			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_TSF_L32			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TSF_L32_5210 : AR5K_TSF_L32_5211)
 
 #define AR5K_TSF_U32_5210		0x8070
 #define AR5K_TSF_U32_5211		0x8050
-#define AR5K_TSF_U32			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_TSF_U32			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TSF_U32_5210 : AR5K_TSF_U32_5211)
 
 #define AR5K_BEACON_5210		0x8024
 #define AR5K_BEACON_5211		0x8020
-#define AR5K_BEACON			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_BEACON			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_BEACON_5210 : AR5K_BEACON_5211)
 
 #define AR5K_LAST_TSTP			0x8080
@@ -1782,7 +1782,7 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 
 #define AR5K_KEYTABLE_0_5210		0x9000
 #define AR5K_KEYTABLE_0_5211		0x8800
-#define AR5K_KEYTABLE_0			(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_KEYTABLE_0			(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_KEYTABLE_0_5210 : \
 					AR5K_KEYTABLE_0_5211)
 
@@ -1792,7 +1792,7 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 
 #define AR5K_KEYTABLE_SIZE_5210		64
 #define AR5K_KEYTABLE_SIZE_5211		128
-#define AR5K_KEYTABLE_SIZE		(mac_version == AR5K_SREV_MAC_AR5210? \
+#define AR5K_KEYTABLE_SIZE		(mac_version == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_KEYTABLE_SIZE_5210 : \
 					AR5K_KEYTABLE_SIZE_5211)
 
