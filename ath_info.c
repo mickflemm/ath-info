@@ -59,87 +59,76 @@ fprintf(stderr, "#ERR %s: " fmt "\n", __FUNCTION__, ##__args__)
  */
 #define AR5K_GPIODI	0x401c
 
-/*
- * Common silicon revision/version values
- */
-enum ath5k_srev_type {
-	AR5K_VERSION_VER,
-	AR5K_VERSION_REV,
-	AR5K_VERSION_RAD,
-};
-
 struct ath5k_srev_name {
 	const char *sr_name;
-	enum ath5k_srev_type sr_type;
-	u_int sr_val;
+	u_int8_t sr_val;
 };
 
-#define AR5K_SREV_UNKNOWN	0xffff
-
 /* Known MAC revision numbers */
-#define AR5K_SREV_VER_AR5210	0x00
-#define AR5K_SREV_VER_AR5311	0x10
-#define AR5K_SREV_VER_AR5311A	0x20
-#define AR5K_SREV_VER_AR5311B	0x30
-#define AR5K_SREV_VER_AR5211	0x40
-#define AR5K_SREV_VER_AR5212	0x50
-#define AR5K_SREV_VER_AR5213	0x55
-#define AR5K_SREV_VER_AR5213A	0x59
-#define AR5K_SREV_VER_AR2413	0x78
-#define AR5K_SREV_VER_AR2414	0x79
-#define	AR5K_SREV_VER_AR2424	0xa0
-#define	AR5K_SREV_VER_AR5424	0xa3
-#define	AR5K_SREV_VER_AR5413	0xa4
-#define AR5K_SREV_VER_AR5414	0xa5
-#define	AR5K_SREV_VER_AR5416	0xc0
-#define	AR5K_SREV_VER_AR5418	0xca
-#define	AR5K_SREV_VER_AR2425	0xe0
+#define AR5K_SREV_MAC_AR5210	0x00
+#define AR5K_SREV_MAC_AR5311	0x10
+#define AR5K_SREV_MAC_AR5311A	0x20
+#define AR5K_SREV_MAC_AR5311B	0x30
+#define AR5K_SREV_MAC_AR5211	0x40
+#define AR5K_SREV_MAC_AR5212	0x50
+#define AR5K_SREV_MAC_AR5213	0x55
+#define AR5K_SREV_MAC_AR5213A	0x59
+#define AR5K_SREV_MAC_AR2413	0x78
+#define AR5K_SREV_MAC_AR2414	0x79
+#define	AR5K_SREV_MAC_AR2424	0xa0
+#define	AR5K_SREV_MAC_AR5424	0xa3
+#define	AR5K_SREV_MAC_AR5413	0xa4
+#define AR5K_SREV_MAC_AR5414	0xa5
+#define	AR5K_SREV_MAC_AR5416	0xc0
+#define	AR5K_SREV_MAC_AR5418	0xca
+#define	AR5K_SREV_MAC_AR2425	0xe0
 
 /* Known PHY revision numbers */
-#define AR5K_SREV_RAD_5110	0x00
-#define AR5K_SREV_RAD_5111	0x10
-#define AR5K_SREV_RAD_5111A	0x15
-#define AR5K_SREV_RAD_2111	0x20
-#define AR5K_SREV_RAD_5112	0x30
-#define AR5K_SREV_RAD_5112A	0x35
-#define AR5K_SREV_RAD_2112	0x40
-#define AR5K_SREV_RAD_2112A	0x45
-#define AR5K_SREV_RAD_SC0	0x56	/* Found on 2413/2414 */
-#define AR5K_SREV_RAD_SC1	0x63	/* Found on 5413/5414 */
-#define	AR5K_SREV_RAD_SC2	0xa2	/* Found on 2424/5424 */
-#define	AR5K_SREV_RAD_5133	0xc0	/* MIMO found on 5418 */
+#define AR5K_SREV_PHY_5110	0x00
+#define AR5K_SREV_PHY_5111	0x10
+#define AR5K_SREV_PHY_5111A	0x15
+#define AR5K_SREV_PHY_2111	0x20
+#define AR5K_SREV_PHY_5112	0x30
+#define AR5K_SREV_PHY_5112A	0x35
+#define AR5K_SREV_PHY_2112	0x40
+#define AR5K_SREV_PHY_2112A	0x45
+#define AR5K_SREV_PHY_SC0	0x56	/* Found on 2413/2414 */
+#define AR5K_SREV_PHY_SC1	0x63	/* Found on 5413/5414 */
+#define	AR5K_SREV_PHY_SC2	0xa2	/* Found on 2424/5424 */
+#define	AR5K_SREV_PHY_5133	0xc0	/* MIMO found on 5418 */
 
-static const struct ath5k_srev_name ath5k_srev_names[] = {
-	{"5210", AR5K_VERSION_VER, AR5K_SREV_VER_AR5210},
-	{"5311", AR5K_VERSION_VER, AR5K_SREV_VER_AR5311},
-	{"5311A", AR5K_VERSION_VER, AR5K_SREV_VER_AR5311A},
-	{"5311B", AR5K_VERSION_VER, AR5K_SREV_VER_AR5311B},
-	{"5211", AR5K_VERSION_VER, AR5K_SREV_VER_AR5211},
-	{"5212", AR5K_VERSION_VER, AR5K_SREV_VER_AR5212},
-	{"5213", AR5K_VERSION_VER, AR5K_SREV_VER_AR5213},
-	{"5213A", AR5K_VERSION_VER, AR5K_SREV_VER_AR5213A},
-	{"2413", AR5K_VERSION_VER, AR5K_SREV_VER_AR2413},
-	{"2414", AR5K_VERSION_VER, AR5K_SREV_VER_AR2414},
-	{"2424", AR5K_VERSION_VER, AR5K_SREV_VER_AR2424},
-	{"5424", AR5K_VERSION_VER, AR5K_SREV_VER_AR5424},
-	{"5413", AR5K_VERSION_VER, AR5K_SREV_VER_AR5413},
-	{"5414", AR5K_VERSION_VER, AR5K_SREV_VER_AR5414},
-	{"5416", AR5K_VERSION_VER, AR5K_SREV_VER_AR5416},
-	{"5418", AR5K_VERSION_VER, AR5K_SREV_VER_AR5418},
-	{"2425", AR5K_VERSION_VER, AR5K_SREV_VER_AR2425},
-	{"xxxxx", AR5K_VERSION_VER, AR5K_SREV_UNKNOWN},
-	{"5110", AR5K_VERSION_RAD, AR5K_SREV_RAD_5110},
-	{"5111", AR5K_VERSION_RAD, AR5K_SREV_RAD_5111},
-	{"2111", AR5K_VERSION_RAD, AR5K_SREV_RAD_2111},
-	{"5112", AR5K_VERSION_RAD, AR5K_SREV_RAD_5112},
-	{"5112a", AR5K_VERSION_RAD, AR5K_SREV_RAD_5112A},
-	{"2112", AR5K_VERSION_RAD, AR5K_SREV_RAD_2112},
-	{"2112a", AR5K_VERSION_RAD, AR5K_SREV_RAD_2112A},
-	{"SChip", AR5K_VERSION_RAD, AR5K_SREV_RAD_SC0},
-	{"SChip", AR5K_VERSION_RAD, AR5K_SREV_RAD_SC1},
-	{"SChip", AR5K_VERSION_RAD, AR5K_SREV_RAD_SC2},
-	{"5133", AR5K_VERSION_RAD, AR5K_SREV_RAD_5133},
-	{"xxxxx", AR5K_VERSION_RAD, AR5K_SREV_UNKNOWN},
+static const struct ath5k_srev_name ath5k_mac_names[] = {
+	{"5210", AR5K_SREV_MAC_AR5210},
+	{"5311", AR5K_SREV_MAC_AR5311},
+	{"5311A", AR5K_SREV_MAC_AR5311A},
+	{"5311B", AR5K_SREV_MAC_AR5311B},
+	{"5211", AR5K_SREV_MAC_AR5211},
+	{"5212", AR5K_SREV_MAC_AR5212},
+	{"5213", AR5K_SREV_MAC_AR5213},
+	{"5213A", AR5K_SREV_MAC_AR5213A},
+	{"2413", AR5K_SREV_MAC_AR2413},
+	{"2414", AR5K_SREV_MAC_AR2414},
+	{"2424", AR5K_SREV_MAC_AR2424},
+	{"5424", AR5K_SREV_MAC_AR5424},
+	{"5413", AR5K_SREV_MAC_AR5413},
+	{"5414", AR5K_SREV_MAC_AR5414},
+	{"5416", AR5K_SREV_MAC_AR5416},
+	{"5418", AR5K_SREV_MAC_AR5418},
+	{"2425", AR5K_SREV_MAC_AR2425},
+};
+
+static const struct ath5k_srev_name ath5k_phy_names[] = {
+	{"5110", AR5K_SREV_PHY_5110},
+	{"5111", AR5K_SREV_PHY_5111},
+	{"2111", AR5K_SREV_PHY_2111},
+	{"5112", AR5K_SREV_PHY_5112},
+	{"5112a", AR5K_SREV_PHY_5112A},
+	{"2112", AR5K_SREV_PHY_2112},
+	{"2112a", AR5K_SREV_PHY_2112A},
+	{"SChip", AR5K_SREV_PHY_SC0},
+	{"SChip", AR5K_SREV_PHY_SC1},
+	{"SChip", AR5K_SREV_PHY_SC2},
+	{"5133", AR5K_SREV_PHY_5133},
 };
 
 /*
@@ -303,7 +292,7 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
  */
 #define AR5K_EEPROM_DATA_5211	0x6004
 #define AR5K_EEPROM_DATA_5210	0x6800
-#define	AR5K_EEPROM_DATA	(mac_version == AR5K_SREV_VER_AR5210 ? \
+#define	AR5K_EEPROM_DATA	(mac_version == AR5K_SREV_MAC_AR5210 ? \
 				AR5K_EEPROM_DATA_5210 : AR5K_EEPROM_DATA_5211)
 
 /*
@@ -319,7 +308,7 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
  */
 #define AR5K_EEPROM_STAT_5210	0x6c00			/* Register Address [5210] */
 #define AR5K_EEPROM_STAT_5211	0x600c			/* Register Address [5211+] */
-#define	AR5K_EEPROM_STATUS	(mac_version == AR5K_SREV_VER_AR5210 ? \
+#define	AR5K_EEPROM_STATUS	(mac_version == AR5K_SREV_MAC_AR5210 ? \
 				AR5K_EEPROM_STAT_5210 : AR5K_EEPROM_STAT_5211)
 #define AR5K_EEPROM_STAT_RDERR	0x00000001	/* EEPROM read failed */
 #define AR5K_EEPROM_STAT_RDDONE	0x00000002	/* EEPROM read successful */
@@ -577,7 +566,7 @@ static u_int16_t ath5k_hw_radio_revision(u_int16_t mac_version, void *mem,
 	for (i = 0; i < 8; i++)
 		AR5K_REG_WRITE(AR5K_PHY(0x20), 0x00010000);
 
-	if (mac_version == AR5K_SREV_VER_AR5210) {
+	if (mac_version == AR5K_SREV_MAC_AR5210) {
 		srev = AR5K_REG_READ(AR5K_PHY(256) >> 28) & 0xf;
 
 		ret = (u_int16_t)ath5k_hw_bitswap(srev, 4) + 1;
@@ -606,7 +595,7 @@ static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
 	 * Initialize EEPROM access
 	 */
 
-	if (mac_version == AR5K_SREV_VER_AR5210) {
+	if (mac_version == AR5K_SREV_MAC_AR5210) {
 
 		AR5K_REG_ENABLE_BITS(AR5K_PCICFG, AR5K_PCICFG_EEAE);
 
@@ -656,7 +645,7 @@ static int ath5k_hw_eeprom_read(void *mem, u_int32_t offset, u_int16_t *data,
 	/*
 	 * Initialize EEPROM access
 	 */
-	if (mac_version == AR5K_SREV_VER_AR5210) {
+	if (mac_version == AR5K_SREV_MAC_AR5210) {
 		AR5K_REG_ENABLE_BITS(AR5K_PCICFG, AR5K_PCICFG_EEAE);
 		(void)AR5K_REG_READ(AR5K_EEPROM_BASE + (4 * offset));
 	} else {
@@ -1265,23 +1254,34 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	return 0;
 }
 
-static const char *ath5k_hw_get_part_name(enum ath5k_srev_type type,
-					  u_int32_t val)
+static const char *ath5k_hw_get_mac_name(u_int8_t val)
 {
-	const char *name = "xxxxx";
+	const char *name = "?????";
 	unsigned int i;
 
-	for (i = 0; i < ARRAY_SIZE(ath5k_srev_names); i++) {
-		if (ath5k_srev_names[i].sr_type != type ||
-		    ath5k_srev_names[i].sr_val == AR5K_SREV_UNKNOWN)
-			continue;
-		if ((val & 0xff) < ath5k_srev_names[i + 1].sr_val) {
-			name = ath5k_srev_names[i].sr_name;
+	for (i = 0; i < ARRAY_SIZE(ath5k_mac_names); i++) {
+		if (val == ath5k_mac_names[i].sr_val) {
+			name = ath5k_mac_names[i].sr_name;
 			break;
 		}
 	}
 
-	return (name);
+	return name;
+}
+
+static const char *ath5k_hw_get_phy_name(u_int8_t val)
+{
+	const char *name = "?????";
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(ath5k_phy_names); i++) {
+		if (val < ath5k_phy_names[i + 1].sr_val) {
+			name = ath5k_phy_names[i].sr_name;
+			break;
+		}
+	}
+
+	return name;
 }
 
 /* returns -1 on unknown name */
@@ -1710,37 +1710,37 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 {
 #define AR5K_TIMER0_5210		0x802c	/* next TBTT */
 #define AR5K_TIMER0_5211		0x8028
-#define AR5K_TIMER0			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_TIMER0			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_TIMER0_5210 : AR5K_TIMER0_5211)
 
 #define AR5K_TIMER1_5210		0x8030	/* next DMA beacon */
 #define AR5K_TIMER1_5211		0x802c
-#define AR5K_TIMER1			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_TIMER1			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_TIMER1_5210 : AR5K_TIMER1_5211)
 
 #define AR5K_TIMER2_5210		0x8034	/* next SWBA interrupt */
 #define AR5K_TIMER2_5211		0x8030
-#define AR5K_TIMER2			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_TIMER2			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_TIMER2_5210 : AR5K_TIMER2_5211)
 
 #define AR5K_TIMER3_5210		0x8038	/* next ATIM window */
 #define AR5K_TIMER3_5211		0x8034
-#define AR5K_TIMER3			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_TIMER3			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_TIMER3_5210 : AR5K_TIMER3_5211)
 
 #define AR5K_TSF_L32_5210		0x806c	/* TSF (lower 32 bits) */
 #define AR5K_TSF_L32_5211		0x804c
-#define AR5K_TSF_L32			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_TSF_L32			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_TSF_L32_5210 : AR5K_TSF_L32_5211)
 
 #define AR5K_TSF_U32_5210		0x8070
 #define AR5K_TSF_U32_5211		0x8050
-#define AR5K_TSF_U32			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_TSF_U32			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_TSF_U32_5210 : AR5K_TSF_U32_5211)
 
 #define AR5K_BEACON_5210		0x8024
 #define AR5K_BEACON_5211		0x8020
-#define AR5K_BEACON			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_BEACON			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_BEACON_5210 : AR5K_BEACON_5211)
 
 #define AR5K_LAST_TSTP			0x8080
@@ -1782,7 +1782,7 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 
 #define AR5K_KEYTABLE_0_5210		0x9000
 #define AR5K_KEYTABLE_0_5211		0x8800
-#define AR5K_KEYTABLE_0			(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_KEYTABLE_0			(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_KEYTABLE_0_5210 : \
 					AR5K_KEYTABLE_0_5211)
 
@@ -1792,7 +1792,7 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 
 #define AR5K_KEYTABLE_SIZE_5210		64
 #define AR5K_KEYTABLE_SIZE_5211		128
-#define AR5K_KEYTABLE_SIZE		(mac_version == AR5K_SREV_VER_AR5210? \
+#define AR5K_KEYTABLE_SIZE		(mac_version == AR5K_SREV_MAC_AR5210? \
 					AR5K_KEYTABLE_SIZE_5210 : \
 					AR5K_KEYTABLE_SIZE_5211)
 
@@ -2073,11 +2073,10 @@ int main(int argc, char *argv[])
 	printf(" -==Device Information==-\n");
 
 	printf("MAC Version:  %-5s (0x%02x)\n",
-	       ath5k_hw_get_part_name(AR5K_VERSION_VER, mac_version),
-	       mac_version);
+	       ath5k_hw_get_mac_name(mac_version), mac_version);
 
 	printf("MAC Revision: %-5s (0x%02x)\n",
-	       ath5k_hw_get_part_name(AR5K_VERSION_VER, srev), srev);
+	       ath5k_hw_get_mac_name(srev), srev);
 
 	/* Verify EEPROM magic value first */
 	error = ath5k_hw_eeprom_read(mem, AR5K_EEPROM_MAGIC, &ee_magic,
@@ -2124,13 +2123,11 @@ int main(int argc, char *argv[])
 
 	if (phy_rev_5ghz) {
 		printf("5GHz PHY Revision: %-5s (0x%02x)\n",
-		       ath5k_hw_get_part_name(AR5K_VERSION_RAD, phy_rev_5ghz),
-		       phy_rev_5ghz);
+		       ath5k_hw_get_phy_name(phy_rev_5ghz), phy_rev_5ghz);
 	}
 	if (phy_rev_2ghz) {
 		printf("2GHz PHY Revision: %-5s (0x%02x)\n",
-		       ath5k_hw_get_part_name(AR5K_VERSION_RAD, phy_rev_2ghz),
-		       phy_rev_2ghz);
+		       ath5k_hw_get_phy_name(phy_rev_2ghz), phy_rev_2ghz);
 	}
 
 	printf("\n");
@@ -2231,7 +2228,7 @@ int main(int argc, char *argv[])
 		u_int32_t old_cr = rcr, old_do = rdo;
 		int rc;
 
-		if (mac_version >= AR5K_SREV_VER_AR5213 && !nr_gpio_set) {
+		if (mac_version >= AR5K_SREV_MAC_AR5213 && !nr_gpio_set) {
 			dbg("new MAC %x (>= AR5213) set GPIO4 to low",
 			    mac_version);
 			gpio_set[4].valid = 1;
