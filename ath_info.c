@@ -96,7 +96,7 @@ struct ath5k_srev_name {
 #define	AR5K_SREV_VER_AR5418	0xca
 #define	AR5K_SREV_VER_AR2425	0xe0
 
-/* Known PHY revision nymbers */
+/* Known PHY revision numbers */
 #define AR5K_SREV_RAD_5110	0x00
 #define AR5K_SREV_RAD_5111	0x10
 #define AR5K_SREV_RAD_5111A	0x15
@@ -189,7 +189,7 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
 #define AR5K_SLEEP_CTL_SLE_UNITS	0x00000008	/* not on 5210 */
 
 #define AR5K_PCICFG			0x4010	/* Register Address */
-#define AR5K_PCICFG_EEAE		0x00000001	/* Eeprom access enable [5210] */
+#define AR5K_PCICFG_EEAE		0x00000001	/* EEPROM access enable [5210] */
 #define AR5K_PCICFG_CLKRUNEN		0x00000004	/* CLKRUN enable [5211+] */
 #define AR5K_PCICFG_EESIZE		0x00000018	/* Mask for EEPROM size [5211+] */
 #define AR5K_PCICFG_EESIZE_S		3
@@ -203,7 +203,7 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
 #define AR5K_EEPROM_BASE	0x6000
 
 /*
- * Common ar5xxx EEPROM data offsets (set these on AR5K_EEPROM_BASE)
+ * Common AR5xxx EEPROM data offsets (set these on AR5K_EEPROM_BASE)
  */
 #define AR5K_EEPROM_MAGIC		0x003d	/* EEPROM Magic number */
 #define AR5K_EEPROM_MAGIC_VALUE		0x5aa5	/* Default - found on EEPROM */
@@ -236,7 +236,7 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
 
 #define AR5K_EEPROM_VERSION		AR5K_EEPROM_INFO(1)	/* EEPROM Version */
 #define AR5K_EEPROM_VERSION_3_0		0x3000	/* No idea what's going on before this version */
-#define AR5K_EEPROM_VERSION_3_1		0x3001	/* ob/db values for 2Ghz (ar5211_rfregs) */
+#define AR5K_EEPROM_VERSION_3_1		0x3001	/* ob/db values for 2GHz (AR5211_rfregs) */
 #define AR5K_EEPROM_VERSION_3_2		0x3002	/* different frequency representation (eeprom_bin2freq) */
 #define AR5K_EEPROM_VERSION_3_3		0x3003	/* offsets changed, has 32 CTLs (see below) and ee_false_detect (eeprom_read_modes) */
 #define AR5K_EEPROM_VERSION_3_4		0x3004	/* has ee_i_gain ee_cck_ofdm_power_delta (eeprom_read_modes) */
@@ -257,10 +257,10 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
 #define AR5K_EEPROM_HDR_11A(_v)		(((_v) >> AR5K_EEPROM_MODE_11A) & 0x1)
 #define AR5K_EEPROM_HDR_11B(_v)		(((_v) >> AR5K_EEPROM_MODE_11B) & 0x1)
 #define AR5K_EEPROM_HDR_11G(_v)		(((_v) >> AR5K_EEPROM_MODE_11G) & 0x1)
-#define AR5K_EEPROM_HDR_T_2GHZ_DIS(_v)	(((_v) >> 3) & 0x1)	/* Disable turbo for 2Ghz (?) */
+#define AR5K_EEPROM_HDR_T_2GHZ_DIS(_v)	(((_v) >> 3) & 0x1)	/* Disable turbo for 2GHz (?) */
 #define AR5K_EEPROM_HDR_T_5GHZ_DBM(_v)	(((_v) >> 4) & 0x7f)	/* Max turbo power for a/XR mode (eeprom_init) */
 #define AR5K_EEPROM_HDR_DEVICE(_v)	(((_v) >> 11) & 0x7)
-#define AR5K_EEPROM_HDR_T_5GHZ_DIS(_v)	(((_v) >> 15) & 0x1)	/* Disable turbo for 5Ghz (?) */
+#define AR5K_EEPROM_HDR_T_5GHZ_DIS(_v)	(((_v) >> 15) & 0x1)	/* Disable turbo for 5GHz (?) */
 #define AR5K_EEPROM_HDR_RFKILL(_v)	(((_v) >> 14) & 0x1)	/* Device has RFKill support */
 
 /* Misc values available since EEPROM 4.0 */
@@ -291,8 +291,8 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
 #define AR5K_EEPROM_MODES_11B(_v)	AR5K_EEPROM_OFF(_v, 0x00d0, 0x00f2)
 #define AR5K_EEPROM_MODES_11G(_v)	AR5K_EEPROM_OFF(_v, 0x00da, 0x010d)
 #define AR5K_EEPROM_CTL(_v)		AR5K_EEPROM_OFF(_v, 0x00e4, 0x0128)	/* Conformance test limits */
-#define AR5K_EEPROM_CHANNELS_5GHZ(_v)	AR5K_EEPROM_OFF(_v, 0x0150, 0x0150)	/* List of calibrated 5Ghz chans
-										   Don't have a < 3_3 eeprom so i
+#define AR5K_EEPROM_CHANNELS_5GHZ(_v)	AR5K_EEPROM_OFF(_v, 0x0150, 0x0150)	/* List of calibrated 5GHz chans
+										   Don't have a < 3_3 EEPROM so I
 										   just use the same offset */
 
 /* [3.1 - 3.3] */
@@ -310,7 +310,7 @@ static const struct ath5k_srev_name ath5k_srev_names[] = {
 /*
  * EEPROM command register
  */
-#define AR5K_EEPROM_CMD		0x6008			/* Register Addres */
+#define AR5K_EEPROM_CMD		0x6008			/* Register Address */
 #define AR5K_EEPROM_CMD_READ	0x00000001	/* EEPROM read */
 #define AR5K_EEPROM_CMD_WRITE	0x00000002	/* EEPROM write */
 #define AR5K_EEPROM_CMD_RESET	0x00000004	/* EEPROM reset */
@@ -406,7 +406,7 @@ struct ath5k_rate_pcal_info {
 	u_int16_t	target_power_54;
 };
 
-/* Struct to hold EEPROM calibration data */
+/* EEPROM calibration data */
 struct ath5k_eeprom_info {
 
 	/* Header information */
@@ -512,7 +512,7 @@ struct ath5k_eeprom_info {
 		return (ret);						\
 } while (0)
 
-/* names for eeprom fields */
+/* Names for EEPROM fields */
 struct eeprom_entry {
 	const char *name;
 	int addr;
@@ -619,7 +619,7 @@ static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
 
 	} else {
 		/* not 5210 */
-		/* reset eeprom access */
+		/* reset EEPROM access */
 		AR5K_REG_WRITE(AR5K_EEPROM_CMD, AR5K_EEPROM_CMD_RESET);
 		usleep(5);
 
@@ -637,7 +637,7 @@ static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
 		status = AR5K_REG_READ(AR5K_EEPROM_STATUS);
 		if (status & AR5K_EEPROM_STAT_WRDONE) {
 			if (status & AR5K_EEPROM_STAT_WRERR) {
-				err("eeprom write access to 0x%04x failed",
+				err("EEPROM write access to 0x%04x failed",
 				    offset);
 				return 1;
 			}
@@ -711,7 +711,7 @@ static u_int16_t ath5k_eeprom_bin2freq(struct ath5k_eeprom_info *ee,
 }
 
 /*
- * Read antenna infos from eeprom
+ * Read antenna info from EEPROM
  */
 static int ath5k_eeprom_read_ants(void *mem, u_int8_t mac_version,
 				  struct ath5k_eeprom_info *ee,
@@ -770,7 +770,7 @@ static int ath5k_eeprom_read_ants(void *mem, u_int8_t mac_version,
 }
 
 /*
- * Read supported modes from eeprom
+ * Read supported modes from EEPROM
  */
 static int ath5k_eeprom_read_modes(void *mem, u_int8_t mac_version,
 				   struct ath5k_eeprom_info *ee,
@@ -853,9 +853,9 @@ static int ath5k_eeprom_read_modes(void *mem, u_int8_t mac_version,
 }
 
 /*
- * Read per channel calibration info from eeprom
- * This doesn't work on 2413+ chips (eeprom versions >= 5),
- * i only tested it on 5213 + 5112. This is still work in progress...
+ * Read per channel calibration info from EEPROM
+ * This doesn't work on 2413+ chips (EEPROM versions >= 5),
+ * I only tested it on 5213 + 5112. This is still work in progress...
  */
 static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
 				       struct ath5k_eeprom_info *ee,
@@ -893,14 +893,14 @@ static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
 			chan_pcal_info[i].pwr_x0[++c] = ((val >> 8) & 0xff);
 		}
 
-		/* Pcdac steps (dBm * 2) */
+		/* PCDAC steps (dBm * 2) */
 		AR5K_EEPROM_READ(o++, val);
 		chan_pcal_info[i].pcdac_x0[1] = (val & 0x1f);
 		chan_pcal_info[i].pcdac_x0[2] = ((val >> 5) & 0x1f);
 		chan_pcal_info[i].pcdac_x0[3] = ((val >> 10) & 0x1f);
 
 		/* No idea what these power levels are for (4 xpds ?)
-		   I got zeroes on my card and the eeprom info
+		   I got zeroes on my card and the EEPROM info
 		   dumps we found on the net also have weird values */
 		AR5K_EEPROM_READ(o++, val);
 		chan_pcal_info[i].pwr_x3[0] = (val & 0xff);
@@ -908,11 +908,11 @@ static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
 
 		AR5K_EEPROM_READ(o++, val);
 		chan_pcal_info[i].pwr_x3[2] = (val & 0xff);
-		/* It's weird but they puted it here, that's the
-		   pcdac starting step */
+		/* It's weird but they put it here, that's the
+		   PCDAC starting step */
 		chan_pcal_info[i].pcdac_x0[0] = ((val >> 8) & 0xff);
 
-		/* Static values seen on eeprom info dumps */
+		/* Static values seen on EEPROM info dumps */
 		chan_pcal_info[i].pcdac_x3[0] = 20;
 		chan_pcal_info[i].pcdac_x3[1] = 35;
 		chan_pcal_info[i].pcdac_x3[2] = 63;
@@ -990,7 +990,7 @@ static int ath5k_eeprom_read_target_rate_pwr_info(void *mem, u_int8_t mac_versio
 }
 
 /*
- * Initialize eeprom & capabilities structs
+ * Initialize EEPROM & capabilities data
  */
 static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 			     struct ath5k_eeprom_info *ee)
@@ -1256,7 +1256,7 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 		return ret;
 
 	/*
-	 *XXX: 802.11a seems ok, but b and g
+	 *XXX: 802.11a seems OK, but b and g
 	 *     don't. We have to find correct offsets
 	 *     for b and g because they don't start
 	 *     after 802.11a as above ;-(
@@ -1296,7 +1296,7 @@ static int eeprom_name2addr(const char *name)
 		if (!strcmp(name, eeprom_addr[i].name))
 			return eeprom_addr[i].addr;
 	return -1;
-}				/* eeprom_name2addr */
+}
 
 /* returns "<unknown>" on unknown address */
 static const char *eeprom_addr2name(int addr)
@@ -1306,7 +1306,7 @@ static const char *eeprom_addr2name(int addr)
 		if (eeprom_addr[i].addr == addr)
 			return eeprom_addr[i].name;
 	return "<unknown>";
-}				/* eeprom_addr2name */
+}
 
 static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
 			  int mac_version)
@@ -1370,7 +1370,7 @@ static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
 		}
 		anr++;
 		i++;
-	}			/* while (anr < (argc-1)) */
+	}
 
 	if (!(wr_ops_len = i)) {
 		err("no (addr,val) pairs given");
@@ -1437,7 +1437,7 @@ static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
 	}
 
 	return errors ? 11 : 0;
-}				/* do_write_pairs */
+}
 
 static void usage(const char *n)
 {
@@ -1450,7 +1450,7 @@ static void usage(const char *n)
 		"-g N:M  set GPIO N to level M (only used with -w)\n"
 		"-v      verbose output\n"
 		"-f      force; suppress question before writing\n"
-		"-d      dump eeprom (file 'ath-eeprom-dump.bin' and screen)\n"
+		"-d      dump EEPROM (file 'ath-eeprom-dump.bin' and screen)\n"
 		"-R <addr>       read register at <addr> (hex)\n"
 		"-W <addr> <val> write <val> (hex) into register at <addr> (hex)\n"
 		"<base_address>  device base address (see lspci output)\n\n");
@@ -1542,7 +1542,7 @@ static void dump_capabilities(struct ath5k_eeprom_info *ee)
 		printf(" no  |\n");
 
 	if (has_crystal != 2) {
-		printf("| 32KHz   Crystal: ");
+		printf("| 32kHz   Crystal: ");
 		if (has_crystal)
 			printf(" yes |");
 		else
@@ -1960,7 +1960,7 @@ int main(int argc, char *argv[])
 			if (strlen(argv[anr]) != 3 || argv[anr][1] != ':' ||
 			    argv[anr][0] < '0' || argv[anr][0] > '5' ||
 			    (argv[anr][2] != '0' && argv[anr][2] != '1')) {
-				err("invalid gpio spec. %s", argv[anr]);
+				err("invalid GPIO spec. %s", argv[anr]);
 				return 2;
 			}
 			gpio_set[argv[anr][0] - '0'].valid = 1;
@@ -2007,10 +2007,10 @@ int main(int argc, char *argv[])
 		default:
 			err("unknown option %s", argv[anr]);
 			return 2;
-		}		/* switch (argv[anr][1]) */
+		}
 
 		anr++;
-	}			/* while (anr < argc && ...) */
+	}
 
 	if (anr >= argc) {
 		err("missing device address");
@@ -2030,7 +2030,7 @@ int main(int argc, char *argv[])
 		   MAP_SHARED | MAP_FILE, fd, dev_addr);
 
 	if (mem == MAP_FAILED) {
-		printf("Mmap of device at 0x%08llX for 0x%X bytes failed - "
+		printf("mmap of device at 0x%08llX for 0x%X bytes failed - "
 		       "%s\n", dev_addr, AR5K_PCI_MEM_SIZE, strerror(errno));
 		return -3;
 	}
@@ -2081,7 +2081,7 @@ int main(int argc, char *argv[])
 	printf("MAC Revision: %-5s (0x%02x)\n",
 	       ath5k_hw_get_part_name(AR5K_VERSION_VER, srev), srev);
 
-	/* Verify eeprom magic value first */
+	/* Verify EEPROM magic value first */
 	error = ath5k_hw_eeprom_read(mem, AR5K_EEPROM_MAGIC, &ee_magic,
 				     mac_version);
 
@@ -2101,7 +2101,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (ath5k_eeprom_init(mem, mac_version, ee)) {
-		printf("EEPROM Init failed\n");
+		printf("EEPROM init failed\n");
 		return -1;
 	}
 
@@ -2125,12 +2125,12 @@ int main(int argc, char *argv[])
 		phy_rev_2ghz = 0;
 
 	if (phy_rev_5ghz) {
-		printf("5Ghz PHY Revision: %-5s (0x%02x)\n",
+		printf("5GHz PHY Revision: %-5s (0x%02x)\n",
 		       ath5k_hw_get_part_name(AR5K_VERSION_RAD, phy_rev_5ghz),
 		       phy_rev_5ghz);
 	}
 	if (phy_rev_2ghz) {
-		printf("2Ghz PHY Revision: %-5s (0x%02x)\n",
+		printf("2GHz PHY Revision: %-5s (0x%02x)\n",
 		       ath5k_hw_get_part_name(AR5K_VERSION_RAD, phy_rev_2ghz),
 		       phy_rev_2ghz);
 	}
@@ -2167,8 +2167,8 @@ int main(int argc, char *argv[])
 	printf("|          CCK/OFDM gain delta:            %2i             |\n", ee->ee_cck_ofdm_gain_delta);
 	printf("|          CCK/OFDM power delta:           %2i             |\n", ee->ee_cck_ofdm_power_delta);
 	printf("|          Scaled CCK delta:               %2i             |\n", ee->ee_scaled_cck_delta);
-	printf("|          2Ghz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_2GHZ(ee->ee_ant_gain));
-	printf("|          5Ghz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_5GHZ(ee->ee_ant_gain));
+	printf("|          2GHz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_2GHZ(ee->ee_ant_gain));
+	printf("|          5GHz Antenna gain:              %2i             |\n", AR5K_EEPROM_ANT_GAIN_5GHZ(ee->ee_ant_gain));
 	printf("|          Turbo 2W maximum dBm:           %2i             |\n", AR5K_EEPROM_HDR_T_5GHZ_DBM(ee->ee_header));
 	printf("|          Target power start:          0x%03x             |\n", AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1));
 	printf("|          EAR Start:                   0x%03x             |\n", AR5K_EEPROM_EARSTART(ee->ee_misc0));
@@ -2209,7 +2209,7 @@ int main(int argc, char *argv[])
 		u_int16_t data;
 		FILE *dumpfile = fopen("ath-eeprom-dump.bin", "w");
 
-		printf("\nEEPROM dump (%d byte)\n", byte_size);
+		printf("\nEEPROM dump (%d bytes)\n", byte_size);
 		printf("==============================================");
 		for (i = 0; i < byte_size / 2; i++) {
 			error =
@@ -2234,13 +2234,13 @@ int main(int argc, char *argv[])
 		int rc;
 
 		if (mac_version >= AR5K_SREV_VER_AR5213 && !nr_gpio_set) {
-			dbg("new MAC %x (>= AR5213) set gpio4 to low",
+			dbg("new MAC %x (>= AR5213) set GPIO4 to low",
 			    mac_version);
 			gpio_set[4].valid = 1;
 			gpio_set[4].value = 0;
 		}
 
-		/* set gpios */
+		/* set GPIOs */
 		dbg("old GPIO CR %08x DO %08x DI %08x",
 		    rcr, rdo, AR5K_REG_READ(AR5K_GPIODI));
 
