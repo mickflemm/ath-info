@@ -135,10 +135,8 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
  * Silicon revision register
  */
 #define AR5K_SREV		0x4020	/* Register Address */
-#define AR5K_SREV_REV		0x0000000f	/* Mask for revision */
-#define AR5K_SREV_REV_S		0
-#define AR5K_SREV_VER		0x000000ff	/* Mask for version */
-#define AR5K_SREV_VER_S		4
+#define AR5K_SREV_VER		0x000000f0	/* Mask for version */
+#define AR5K_SREV_REV		0x000000ff	/* Mask for revision */
 
 /*
  * PHY chip revision register
@@ -1907,8 +1905,8 @@ static void sta_id0_id1_dump(void *mem)
 int main(int argc, char *argv[])
 {
 	unsigned long long dev_addr;
-	u_int16_t srev, phy_rev_5ghz, phy_rev_2ghz;
-	u_int16_t mac_version, ee_magic;
+	u_int16_t srev, phy_rev_5ghz, phy_rev_2ghz, ee_magic;
+	u_int8_t mac_version, mac_revision;
 	u_int8_t error, eeprom_size, dev_type, eemap;
 	struct ath5k_eeprom_info *ee;
 	unsigned int byte_size = 0;
@@ -2068,7 +2066,12 @@ int main(int argc, char *argv[])
 	}
 
 	srev = AR5K_REG_READ(AR5K_SREV);
-	mac_version = AR5K_REG_MS(srev, AR5K_SREV_VER) << 4;
+	if (srev >= 0x0100) {
+		printf("MAC revision 0x%04x is not supported!\n", srev);
+		return -1;
+	}
+	mac_version = srev & AR5K_SREV_VER;
+	mac_revision = srev & AR5K_SREV_REV;
 
 	printf(" -==Device Information==-\n");
 
@@ -2076,7 +2079,7 @@ int main(int argc, char *argv[])
 	       ath5k_hw_get_mac_name(mac_version), mac_version);
 
 	printf("MAC Revision: %-5s (0x%02x)\n",
-	       ath5k_hw_get_mac_name(srev), srev);
+	       ath5k_hw_get_mac_name(mac_revision), mac_revision);
 
 	/* Verify EEPROM magic value first */
 	error = ath5k_hw_eeprom_read(mem, AR5K_EEPROM_MAGIC, &ee_magic,
