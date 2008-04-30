@@ -512,8 +512,6 @@ static const struct eeprom_entry eeprom_addr[] = {
 	{"regdomain", AR5K_EEPROM_REG_DOMAIN},
 };
 
-static const int eeprom_addr_len = sizeof(eeprom_addr) / sizeof(eeprom_addr[0]);
-
 static int force_write = 0;
 static int verbose = 0;
 
@@ -1285,10 +1283,11 @@ static const char *ath5k_hw_get_phy_name(u_int8_t val)
 /* returns -1 on unknown name */
 static int eeprom_name2addr(const char *name)
 {
-	int i;
+	unsigned int i;
+
 	if (!name || !name[0])
 		return -1;
-	for (i = 0; i < eeprom_addr_len; i++)
+	for (i = 0; i < ARRAY_SIZE(eeprom_addr); i++)
 		if (!strcmp(name, eeprom_addr[i].name))
 			return eeprom_addr[i].addr;
 	return -1;
@@ -1297,8 +1296,9 @@ static int eeprom_name2addr(const char *name)
 /* returns "<unknown>" on unknown address */
 static const char *eeprom_addr2name(int addr)
 {
-	int i;
-	for (i = 0; i < eeprom_addr_len; i++)
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(eeprom_addr); i++)
 		if (eeprom_addr[i].addr == addr)
 			return eeprom_addr[i].name;
 	return "<unknown>";
@@ -1437,7 +1437,7 @@ static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
 
 static void usage(const char *n)
 {
-	int i;
+	unsigned int i;
 
 	fprintf(stderr, "%s [-w [-g N:M]] [-v] [-f] [-d] [-R addr] [-W addr val] <base_address> "
 		"[<name1> <val1> [<name2> <val2> ...]]\n\n", n);
@@ -1459,7 +1459,7 @@ static void usage(const char *n)
 		"- set a PCI id field to value N:\n"
 		"  %s -w <base_address> <field> N\n"
 		"  where <field> is on of:\n    ", n, n, n);
-	for (i = 0; i < eeprom_addr_len; i++)
+	for (i = 0; i < ARRAY_SIZE(eeprom_addr); i++)
 		fprintf(stderr, " %s", eeprom_addr[i].name);
 	fprintf(stderr, "\n\n");
 	fprintf(stderr,
@@ -1929,7 +1929,7 @@ int main(int argc, char *argv[])
 	} gpio_set[AR5K_NUM_GPIO];
 	int nr_gpio_set = 0;
 
-	for (i = 0; i < sizeof(gpio_set) / sizeof(gpio_set[0]); i++)
+	for (i = 0; i < ARRAY_SIZE(gpio_set); i++)
 		gpio_set[i].valid = 0;
 
 	if (argc < 2) {
@@ -2242,7 +2242,7 @@ int main(int argc, char *argv[])
 		dbg("old GPIO CR %08x DO %08x DI %08x",
 		    rcr, rdo, AR5K_REG_READ(AR5K_GPIODI));
 
-		for (i = 0; i < sizeof(gpio_set) / sizeof(gpio_set[0]); i++) {
+		for (i = 0; i < ARRAY_SIZE(gpio_set); i++) {
 			if (gpio_set[i].valid) {
 				rcr |= AR5K_GPIOCR_OUT(i);	/* we use mode 3 */
 				rcr &= ~AR5K_GPIOCR_INT_SEL(i);
