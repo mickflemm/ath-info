@@ -1458,7 +1458,7 @@ static void usage(const char *n)
 		"  %s -w <base_address> regdomain N\n\n"
 		"- set a PCI id field to value N:\n"
 		"  %s -w <base_address> <field> N\n"
-		"  where <field> is on of:\n    ", n, n, n);
+		"  where <field> is one of:\n    ", n, n, n);
 	for (i = 0; i < ARRAY_SIZE(eeprom_addr); i++)
 		fprintf(stderr, " %s", eeprom_addr[i].name);
 	fprintf(stderr, "\n\n");
