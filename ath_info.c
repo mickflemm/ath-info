@@ -2217,8 +2217,8 @@ int main(int argc, char *argv[])
 				continue;
 			}
 			if (!(i % 8))
-				printf("\n%04x:  ", i);
-			printf("%04x ", data);
+				printf("\n%04x: ", i);
+			printf(" %04x", data);
 			fwrite(&data, 2, 1, dumpfile);
 		}
 		printf("\n==============================================\n");
