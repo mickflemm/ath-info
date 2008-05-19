@@ -1,4 +1,9 @@
-CC = gcc
+# USER_CROSS_COMPILE is a string that is prepended to all toolchain
+# executables, such as gcc, ld, as, objcopy etc.  This is used for
+# cross-compiling userspace binaries.  If not defined, CROSS_COMPILE
+# is used.
+USER_CROSS_COMPILE ?= $(CROSS_COMPILE)
+CC = $(USER_CROSS_COMPILE)gcc
 CFLAGS = -g -O2 -W -Wall
 LDFLAGS =
 DESTDIR =
