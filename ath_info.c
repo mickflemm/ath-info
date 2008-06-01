@@ -122,9 +122,9 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
 	{"5111", AR5K_SREV_PHY_5111},
 	{"2111", AR5K_SREV_PHY_2111},
 	{"5112", AR5K_SREV_PHY_5112},
-	{"5112a", AR5K_SREV_PHY_5112A},
+	{"5112A", AR5K_SREV_PHY_5112A},
 	{"2112", AR5K_SREV_PHY_2112},
-	{"2112a", AR5K_SREV_PHY_2112A},
+	{"2112A", AR5K_SREV_PHY_2112A},
 	{"SChip", AR5K_SREV_PHY_SC0},
 	{"SChip", AR5K_SREV_PHY_SC1},
 	{"SChip", AR5K_SREV_PHY_SC2},
@@ -277,9 +277,10 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
 #define AR5K_EEPROM_MODES_11B(_v)	AR5K_EEPROM_OFF(_v, 0x00d0, 0x00f2)
 #define AR5K_EEPROM_MODES_11G(_v)	AR5K_EEPROM_OFF(_v, 0x00da, 0x010d)
 #define AR5K_EEPROM_CTL(_v)		AR5K_EEPROM_OFF(_v, 0x00e4, 0x0128)	/* Conformance test limits */
-#define AR5K_EEPROM_CHANNELS_5GHZ(_v)	AR5K_EEPROM_OFF(_v, 0x0150, 0x0150)	/* List of calibrated 5GHz chans
-										   Don't have a < 3_3 EEPROM so I
-										   just use the same offset */
+#define AR5K_EEPROM_CHANNELS_5GHZ(_v)	AR5K_EEPROM_OFF(_v, 0x0100, 0x0150)	/* List of calibrated 5GHz chans */
+#define	AR5K_EEPROM_TARGET_PWR_OFF_11A(_v)	AR5K_EEPROM_OFF(_v, AR5K_EEPROM_CHANNELS_5GHZ(_v) + 0x0055, 0x0000)
+#define	AR5K_EEPROM_TARGET_PWR_OFF_11B(_v)	AR5K_EEPROM_OFF(_v, AR5K_EEPROM_CHANNELS_5GHZ(_v) + 0x0065, 0x0010)
+#define	AR5K_EEPROM_TARGET_PWR_OFF_11G(_v)	AR5K_EEPROM_OFF(_v, AR5K_EEPROM_CHANNELS_5GHZ(_v) + 0x0069, 0x0014)
 
 /* [3.1 - 3.3] */
 #define AR5K_EEPROM_OBDB0_2GHZ		0x00ec
@@ -835,8 +836,19 @@ static int ath5k_eeprom_read_modes(void *mem, u_int8_t mac_version,
 
 /*
  * Read per channel calibration info from EEPROM
- * This doesn't work on 2413+ chips (EEPROM versions >= 5),
+ * This doesn't work on 2112+ chips (EEPROM versions >= 4.6),
  * I only tested it on 5213 + 5112. This is still work in progress...
+ *
+ * This info is used to calibrate the baseband power table. Imagine
+ * that for each channel there is a power curve that's hw specific
+ * (depends on amplifier) and we try to "correct" this curve using offests
+ * we pass on to phy chip (baseband -> before amplifier) so that it can
+ * use acurate power values when setting tx power (takes amplifier's performance
+ * on each channel into account).
+ *
+ * EEPROM provides us with the offsets for some pre-calibrated channels
+ * and we have to scale (to create the full table for these channels) and
+ * interpolate (in order to create the table for any channel).
  */
 static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
 				       struct ath5k_eeprom_info *ee,
@@ -913,6 +925,13 @@ static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
 	return 0;
 }
 
+/*
+ * Read per rate target power (this is the maximum tx power
+ * supported by the card). This info is used when setting
+ * tx power, no matter the channel.
+ *
+ * This also works for v5 EEPROMs.
+ */
 static int ath5k_eeprom_read_target_rate_pwr_info(void *mem,
 						  u_int8_t mac_version,
 						  struct ath5k_eeprom_info *ee,
@@ -933,7 +952,7 @@ static int ath5k_eeprom_read_target_rate_pwr_info(void *mem,
 		break;
 	case AR5K_EEPROM_MODE_11B:
 		rate_pcal_info = ee->ee_rate_tpwr_b;
-		ee->ee_rate_target_pwr_num_b = AR5K_EEPROM_N_2GHZ_CHAN;
+		ee->ee_rate_target_pwr_num_b = 2; /* 3rd is g mode'ss 1st */
 		rate_target_pwr_num = &ee->ee_rate_target_pwr_num_b;
 		break;
 	case AR5K_EEPROM_MODE_11G:
@@ -945,27 +964,50 @@ static int ath5k_eeprom_read_target_rate_pwr_info(void *mem,
 		return -EINVAL;
 	}
 
-	for (i = 0; i < (*rate_target_pwr_num); i++) {
-		AR5K_EEPROM_READ(o++, val);
-		rate_pcal_info[i].freq =
-		    ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, mode);
+	/* Different freq mask for older eeproms (<= v3.2) */
+	if(ee->ee_version <= 0x3002){
+		for (i = 0; i < (*rate_target_pwr_num); i++) {
+			AR5K_EEPROM_READ(o++, val);
+			rate_pcal_info[i].freq =
+			    ath5k_eeprom_bin2freq(ee, (val >> 9) & 0x7f, mode);
+	
+			rate_pcal_info[i].target_power_6to24 = ((val >> 3) & 0x3f);
+			rate_pcal_info[i].target_power_36 = (val << 3) & 0x3f;
+	
+			AR5K_EEPROM_READ(o++, val);
+	
+			if (rate_pcal_info[i].freq == AR5K_EEPROM_CHANNEL_DIS ||
+			    val == 0) {
+				(*rate_target_pwr_num) = i;
+				break;
+			}
 
-		rate_pcal_info[i].target_power_6to24 = ((val >> 2) & 0x3f);
-		rate_pcal_info[i].target_power_36 = (val << 4) & 0x3f;
-
-		AR5K_EEPROM_READ(o++, val);
-
-		if (rate_pcal_info[i].freq == AR5K_EEPROM_CHANNEL_DIS ||
-		    val == 0) {
-			(*rate_target_pwr_num) = i;
-			break;
+			rate_pcal_info[i].target_power_36 |= ((val >> 13) & 0x7);
+			rate_pcal_info[i].target_power_48 = ((val >> 7) & 0x3f);
+			rate_pcal_info[i].target_power_54 = ((val >> 1) & 0x3f);
 		}
+	} else {
+		for (i = 0; i < (*rate_target_pwr_num); i++) {
+			AR5K_EEPROM_READ(o++, val);
+			rate_pcal_info[i].freq =
+			    ath5k_eeprom_bin2freq(ee, (val >> 8) & 0xff, mode);
+	
+			rate_pcal_info[i].target_power_6to24 = ((val >> 2) & 0x3f);
+			rate_pcal_info[i].target_power_36 = (val << 4) & 0x3f;
+	
+			AR5K_EEPROM_READ(o++, val);
+	
+			if (rate_pcal_info[i].freq == AR5K_EEPROM_CHANNEL_DIS ||
+			    val == 0) {
+				(*rate_target_pwr_num) = i;
+				break;
+			}
 
-		rate_pcal_info[i].target_power_36 |= (val >> 12) & 0xf;
-		rate_pcal_info[i].target_power_48 = ((val >> 6) & 0x3f);
-		rate_pcal_info[i].target_power_54 = (val & 0x3f);
+			rate_pcal_info[i].target_power_36 |= (val >> 12) & 0xf;
+			rate_pcal_info[i].target_power_48 = ((val >> 6) & 0x3f);
+			rate_pcal_info[i].target_power_54 = (val & 0x3f);
+		}
 	}
-
 	/* return new offset */
 	(*offset) = o;
 
@@ -1217,6 +1259,9 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 
 	}
 
+	/*
+	 * Read power calibration info
+	 */
 	mode = AR5K_EEPROM_MODE_11A;
 	ret = ath5k_eeprom_read_pcal_info(mem, mac_version, ee, &offset, mode);
 	if (ret)
@@ -1232,20 +1277,27 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	if (ret)
 		return ret;
 
-	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1);
+
+	/*
+	 * Read per rate target power info
+	 */
+	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11A(ee->ee_version);
 	mode = AR5K_EEPROM_MODE_11A;
 	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, mac_version, ee, &offset, mode);
 	if (ret)
 		return ret;
 
-	/*
-	 *XXX: 802.11a seems OK, but b and g
-	 *     don't. We have to find correct offsets
-	 *     for b and g because they don't start
-	 *     after 802.11a as above ;-(
-	 *
-	 *TODO: b/g
-	 */
+	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11B(ee->ee_version);
+	mode = AR5K_EEPROM_MODE_11B;
+	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, mac_version, ee, &offset, mode);
+	if (ret)
+		return ret;
+
+	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11G(ee->ee_version);
+	mode = AR5K_EEPROM_MODE_11G;
+	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, mac_version, ee, &offset, mode);
+	if (ret)
+		return ret;
 
 	return 0;
 }
@@ -1256,9 +1308,8 @@ static const char *ath5k_hw_get_mac_name(u_int8_t val)
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(ath5k_mac_names); i++) {
-		if (val == ath5k_mac_names[i].sr_val) {
+		if (val >= ath5k_mac_names[i].sr_val) {
 			name = ath5k_mac_names[i].sr_name;
-			break;
 		}
 	}
 
@@ -2186,6 +2237,7 @@ int main(int argc, char *argv[])
 		printf("/=========================================================\\\n");
 		printf("|          Calibration data for 802.11b operation         |\n");
 		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11B, ee);
+		dump_rate_calinfo_for_mode(AR5K_EEPROM_MODE_11B, ee);
 		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11B, ee);
 		printf("\n");
 	}
@@ -2194,6 +2246,7 @@ int main(int argc, char *argv[])
 		printf("/=========================================================\\\n");
 		printf("|          Calibration data for 802.11g operation         |\n");
 		dump_calinfo_for_mode(AR5K_EEPROM_MODE_11G, ee);
+		dump_rate_calinfo_for_mode(AR5K_EEPROM_MODE_11G, ee);
 		dump_power_calinfo_for_mode(AR5K_EEPROM_MODE_11G, ee);
 		printf("\n");
 	}
