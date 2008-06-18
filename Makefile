@@ -6,7 +6,6 @@ USER_CROSS_COMPILE ?= $(CROSS_COMPILE)
 CC = $(USER_CROSS_COMPILE)gcc
 CFLAGS = -g -O2 -W -Wall
 LDFLAGS =
-DESTDIR =
 PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/share/man
