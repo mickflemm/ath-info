@@ -73,6 +73,7 @@ struct ath5k_srev_name {
 #define AR5K_SREV_MAC_AR5212	0x50
 #define AR5K_SREV_MAC_AR5213	0x55
 #define AR5K_SREV_MAC_AR5213A	0x59
+#define AR5K_SREV_MAC_AR5513	0x61
 #define AR5K_SREV_MAC_AR2413	0x78
 #define AR5K_SREV_MAC_AR2414	0x79
 #define AR5K_SREV_MAC_AR2424	0xa0
@@ -81,7 +82,7 @@ struct ath5k_srev_name {
 #define AR5K_SREV_MAC_AR5414	0xa5
 #define AR5K_SREV_MAC_AR5416	0xc0
 #define AR5K_SREV_MAC_AR5418	0xca
-#define AR5K_SREV_MAC_AR2425	0xe0
+#define AR5K_SREV_MAC_AR2425	0xe2
 
 /* Known PHY revision numbers */
 #define AR5K_SREV_PHY_5110	0x00
@@ -1304,15 +1305,18 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 
 static const char *ath5k_hw_get_mac_name(u_int8_t val)
 {
-	const char *name = "?????";
+	static char name[16];
 	unsigned int i;
 
 	for (i = 0; i < ARRAY_SIZE(ath5k_mac_names); i++) {
-		if (val >= ath5k_mac_names[i].sr_val) {
-			name = ath5k_mac_names[i].sr_name;
-		}
+		if (val <= ath5k_mac_names[i].sr_val)
+			break;
 	}
 
+	if (val == ath5k_mac_names[i].sr_val)
+		return ath5k_mac_names[i].sr_name;
+
+	snprintf(name, sizeof(name), "%s+", ath5k_mac_names[i - 1].sr_name);
 	return name;
 }
 
@@ -2125,9 +2129,6 @@ int main(int argc, char *argv[])
 	mac_revision = srev & AR5K_SREV_REV;
 
 	printf(" -==Device Information==-\n");
-
-	printf("MAC Version:  %-5s (0x%02x)\n",
-	       ath5k_hw_get_mac_name(mac_version), mac_version);
 
 	printf("MAC Revision: %-5s (0x%02x)\n",
 	       ath5k_hw_get_mac_name(mac_revision), mac_revision);
