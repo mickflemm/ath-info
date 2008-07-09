@@ -494,7 +494,7 @@ struct ath5k_eeprom_info {
 #define AR5K_TUNE_REGISTER_TIMEOUT		20000
 
 #define AR5K_EEPROM_READ(_o, _v) do {					\
-	if ((ret = ath5k_hw_eeprom_read(mem, (_o), &(_v))) != 0)	\
+	if ((ret = ath5k_hw_eeprom_read((_o), &(_v))) != 0)	\
 		return (ret);						\
 } while (0)
 
@@ -525,6 +525,7 @@ static enum {
 	AR5K_EEPROM_ACCESS_5416
 } eeprom_access;
 static int mac_revision;
+void *mem;
 
 /* forward decl. */
 static void usage(const char *n);
@@ -544,7 +545,7 @@ static u_int32_t ath5k_hw_bitswap(u_int32_t val, u_int bits)
 /*
  * Get the PHY Chip revision
  */
-static u_int16_t ath5k_hw_radio_revision(void *mem, u_int8_t chip)
+static u_int16_t ath5k_hw_radio_revision(u_int8_t chip)
 {
 	int i;
 	u_int32_t srev;
@@ -592,7 +593,7 @@ static u_int16_t ath5k_hw_radio_revision(void *mem, u_int8_t chip)
 /*
  * Write to EEPROM
  */
-static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data)
+static int ath5k_hw_eeprom_write(u_int32_t offset, u_int16_t data)
 {
 	u_int32_t status, timeout;
 
@@ -642,7 +643,7 @@ static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data)
 /*
  * Read from EEPROM
  */
-static int ath5k_hw_eeprom_read(void *mem, u_int32_t offset, u_int16_t *data)
+static int ath5k_hw_eeprom_read(u_int32_t offset, u_int16_t *data)
 {
 	u_int32_t status, timeout;
 
@@ -702,7 +703,7 @@ static u_int16_t ath5k_eeprom_bin2freq(struct ath5k_eeprom_info *ee,
 /*
  * Read antenna info from EEPROM
  */
-static int ath5k_eeprom_read_ants(void *mem, struct ath5k_eeprom_info *ee,
+static int ath5k_eeprom_read_ants(struct ath5k_eeprom_info *ee,
 				  u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
@@ -760,7 +761,7 @@ static int ath5k_eeprom_read_ants(void *mem, struct ath5k_eeprom_info *ee,
 /*
  * Read supported modes from EEPROM
  */
-static int ath5k_eeprom_read_modes(void *mem, struct ath5k_eeprom_info *ee,
+static int ath5k_eeprom_read_modes(struct ath5k_eeprom_info *ee,
 				   u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
@@ -855,7 +856,7 @@ static int ath5k_eeprom_read_modes(void *mem, struct ath5k_eeprom_info *ee,
  * and we have to scale (to create the full table for these channels) and
  * interpolate (in order to create the table for any channel).
  */
-static int ath5k_eeprom_read_pcal_info(void *mem, struct ath5k_eeprom_info *ee,
+static int ath5k_eeprom_read_pcal_info(struct ath5k_eeprom_info *ee,
 				       u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
@@ -936,8 +937,7 @@ static int ath5k_eeprom_read_pcal_info(void *mem, struct ath5k_eeprom_info *ee,
  *
  * This also works for v5 EEPROMs.
  */
-static int ath5k_eeprom_read_target_rate_pwr_info(void *mem,
-						  struct ath5k_eeprom_info *ee,
+static int ath5k_eeprom_read_target_rate_pwr_info(struct ath5k_eeprom_info *ee,
 						  u_int32_t *offset,
 						  unsigned int mode)
 {
@@ -1020,7 +1020,7 @@ static int ath5k_eeprom_read_target_rate_pwr_info(void *mem,
 /*
  * Initialize EEPROM & capabilities data
  */
-static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
+static int ath5k_eeprom_init(struct ath5k_eeprom_info *ee)
 {
 	unsigned int mode, i;
 	int ret;
@@ -1109,7 +1109,7 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 
 	offset = AR5K_EEPROM_MODES_11A(ee->ee_version);
 
-	ret = ath5k_eeprom_read_ants(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_ants(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1127,7 +1127,7 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 	ee->ee_ob[mode][0]		= (val >> 3) & 0x7;
 	ee->ee_db[mode][0]		= val & 0x7;
 
-	ret = ath5k_eeprom_read_modes(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_modes(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1142,7 +1142,7 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 	mode = AR5K_EEPROM_MODE_11B;
 	offset = AR5K_EEPROM_MODES_11B(ee->ee_version);
 
-	ret = ath5k_eeprom_read_ants(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_ants(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1151,7 +1151,7 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 	ee->ee_ob[mode][1]		= (val >> 4) & 0x7;
 	ee->ee_db[mode][1]		= val & 0x7;
 
-	ret = ath5k_eeprom_read_modes(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_modes(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1186,7 +1186,7 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 	mode = AR5K_EEPROM_MODE_11G;
 	offset = AR5K_EEPROM_MODES_11G(ee->ee_version);
 
-	ret = ath5k_eeprom_read_ants(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_ants(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1195,7 +1195,7 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 	ee->ee_ob[mode][1]		= (val >> 4) & 0x7;
 	ee->ee_db[mode][1]		= val & 0x7;
 
-	ret = ath5k_eeprom_read_modes(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_modes(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1265,17 +1265,17 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 	 * Read power calibration info
 	 */
 	mode = AR5K_EEPROM_MODE_11A;
-	ret = ath5k_eeprom_read_pcal_info(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_pcal_info(ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	mode = AR5K_EEPROM_MODE_11B;
-	ret = ath5k_eeprom_read_pcal_info(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_pcal_info(ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	mode = AR5K_EEPROM_MODE_11G;
-	ret = ath5k_eeprom_read_pcal_info(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_pcal_info(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1285,19 +1285,19 @@ static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 	 */
 	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11A(ee->ee_version);
 	mode = AR5K_EEPROM_MODE_11A;
-	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_target_rate_pwr_info(ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11B(ee->ee_version);
 	mode = AR5K_EEPROM_MODE_11B;
-	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_target_rate_pwr_info(ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11G(ee->ee_version);
 	mode = AR5K_EEPROM_MODE_11G;
-	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, ee, &offset, mode);
+	ret = ath5k_eeprom_read_target_rate_pwr_info(ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1360,7 +1360,7 @@ static const char *eeprom_addr2name(int addr)
 	return "<unknown>";
 }
 
-static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem)
+static int do_write_pairs(int anr, int argc, char **argv)
 {
 #define MAX_NR_WRITES 16
 	struct {
@@ -1453,7 +1453,7 @@ static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem)
 		u_int16_t oldval, u;
 
 		if (ath5k_hw_eeprom_read
-		    (mem, wr_ops[i].addr, &oldval)) {
+		    (wr_ops[i].addr, &oldval)) {
 			err("failed to read old value from offset 0x%04x ",
 			    wr_ops[i].addr);
 			errors++;
@@ -1465,14 +1465,12 @@ static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem)
 		}
 
 		dbg("writing *0x%04x := 0x%04x", wr_ops[i].addr, wr_ops[i].val);
-		if (ath5k_hw_eeprom_write
-		    (mem, wr_ops[i].addr, wr_ops[i].val)) {
+		if (ath5k_hw_eeprom_write(wr_ops[i].addr, wr_ops[i].val)) {
 			err("failed to write 0x%04x to offset 0x%04x",
 			    wr_ops[i].val, wr_ops[i].addr);
 			errors++;
 		} else {
-			if (ath5k_hw_eeprom_read
-			    (mem, wr_ops[i].addr, &u)) {
+			if (ath5k_hw_eeprom_read(wr_ops[i].addr, &u)) {
 				err("failed to read offset 0x%04x for "
 				    "verification", wr_ops[i].addr);
 				errors++;
@@ -1759,7 +1757,7 @@ static u_int32_t extend_tu(u_int32_t base_tu, u_int32_t val, u_int32_t mask)
 	return result;
 }
 
-static void dump_timers_register(void *mem)
+static void dump_timers_register(void)
 {
 #define AR5K_TIMER0_5210		0x802c	/* next TBTT */
 #define AR5K_TIMER0_5211		0x8028
@@ -1849,7 +1847,7 @@ static void dump_timers_register(void *mem)
 					AR5K_KEYTABLE_SIZE_5210 : \
 					AR5K_KEYTABLE_SIZE_5211)
 
-static void keycache_dump(void *mem)
+static void keycache_dump(void)
 {
 	int i, keylen;
 	u_int32_t val0, val1, val2, val3, val4, keytype, ant, mac0, mac1;
@@ -1902,7 +1900,7 @@ static void keycache_dump(void *mem)
 
 /* copy key index (0) to key index (idx) */
 
-static void keycache_copy(void *mem, int idx)
+static void keycache_copy(int idx)
 {
 	u_int32_t val0, val1, val2, val3, val4, keytype, mac0, mac1;
 
@@ -1931,7 +1929,7 @@ static void keycache_copy(void *mem, int idx)
 	AR5K_REG_WRITE(AR5K_KEYTABLE_OFF(idx, 7), mac1);
 }
 
-static void sta_id0_id1_dump(void *mem)
+static void sta_id0_id1_dump(void)
 {
 #define AR5K_STA_ID0			0x8000
 #define AR5K_STA_ID1			0x8004
@@ -1964,7 +1962,6 @@ int main(int argc, char *argv[])
 	u_int8_t error, eeprom_size, dev_type, eemap;
 	struct ath5k_eeprom_info *ee;
 	unsigned int byte_size = 0;
-	void *mem;
 	int fd;
 	unsigned int i;
 	int anr = 1;
@@ -2136,7 +2133,7 @@ int main(int argc, char *argv[])
 	       ath5k_hw_get_mac_name(mac_revision), mac_revision);
 
 	/* Verify EEPROM magic value first */
-	error = ath5k_hw_eeprom_read(mem, AR5K_EEPROM_MAGIC, &ee_magic);
+	error = ath5k_hw_eeprom_read(AR5K_EEPROM_MAGIC, &ee_magic);
 
 	if (error) {
 		printf("Unable to read EEPROM Magic value!\n");
@@ -2153,7 +2150,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (ath5k_eeprom_init(mem, ee)) {
+	if (ath5k_eeprom_init(ee)) {
 		printf("EEPROM init failed\n");
 		return -1;
 	}
@@ -2168,12 +2165,12 @@ int main(int argc, char *argv[])
 	printf("Device type:  %1i\n", dev_type);
 
 	if (AR5K_EEPROM_HDR_11A(ee->ee_header))
-		phy_rev_5ghz = ath5k_hw_radio_revision(mem, 1);
+		phy_rev_5ghz = ath5k_hw_radio_revision(1);
 	else
 		phy_rev_5ghz = 0;
 
 	if (AR5K_EEPROM_HDR_11B(ee->ee_header))
-		phy_rev_2ghz = ath5k_hw_radio_revision(mem, 0);
+		phy_rev_2ghz = ath5k_hw_radio_revision(0);
 	else
 		phy_rev_2ghz = 0;
 
@@ -2266,7 +2263,7 @@ int main(int argc, char *argv[])
 		printf("==============================================");
 		for (i = 0; i < byte_size / 2; i++) {
 			error =
-			    ath5k_hw_eeprom_read(mem, i, &data);
+			    ath5k_hw_eeprom_read(i, &data);
 			if (error) {
 				printf("\nUnable to read at %04x\n", i);
 				continue;
@@ -2327,7 +2324,7 @@ int main(int argc, char *argv[])
 		/* let argv[anr] be the first write parameter */
 		anr++;
 
-		rc = do_write_pairs(anr, argc, argv, mem);
+		rc = do_write_pairs(anr, argc, argv);
 
 		/* restore old GPIO settings */
 		if (rcr != old_cr) {
@@ -2344,16 +2341,16 @@ int main(int argc, char *argv[])
 		return rc;
 	}
 
-	sta_id0_id1_dump(mem);
+	sta_id0_id1_dump();
 
 	for (i = 0; i < timer_count; i++)
-		dump_timers_register(mem);
+		dump_timers_register();
 
 	if (do_keycache_dump)
-		keycache_dump(mem);
+		keycache_dump();
 
 	if (keycache_copy_idx > 0)
-		keycache_copy(mem, keycache_copy_idx);
+		keycache_copy(keycache_copy_idx);
 
 	return 0;
 }
