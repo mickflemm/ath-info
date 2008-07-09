@@ -292,7 +292,7 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
  */
 #define AR5K_EEPROM_DATA_5211	0x6004
 #define AR5K_EEPROM_DATA_5210	0x6800
-#define AR5K_EEPROM_DATA	(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_EEPROM_DATA	(eeprom_access == AR5K_EEPROM_ACCESS_5210 ? \
 				AR5K_EEPROM_DATA_5210 : AR5K_EEPROM_DATA_5211)
 
 /*
@@ -308,7 +308,7 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
  */
 #define AR5K_EEPROM_STAT_5210	0x6c00			/* Register Address [5210] */
 #define AR5K_EEPROM_STAT_5211	0x600c			/* Register Address [5211+] */
-#define AR5K_EEPROM_STATUS	(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_EEPROM_STATUS	(eeprom_access == AR5K_EEPROM_ACCESS_5210 ? \
 				AR5K_EEPROM_STAT_5210 : AR5K_EEPROM_STAT_5211)
 #define AR5K_EEPROM_STAT_RDERR	0x00000001	/* EEPROM read failed */
 #define AR5K_EEPROM_STAT_RDDONE	0x00000002	/* EEPROM read successful */
@@ -494,7 +494,7 @@ struct ath5k_eeprom_info {
 #define AR5K_TUNE_REGISTER_TIMEOUT		20000
 
 #define AR5K_EEPROM_READ(_o, _v) do {					\
-	if ((ret = ath5k_hw_eeprom_read(mem, (_o), &(_v), mac_version)) != 0)	\
+	if ((ret = ath5k_hw_eeprom_read(mem, (_o), &(_v))) != 0)	\
 		return (ret);						\
 } while (0)
 
@@ -514,8 +514,17 @@ static const struct eeprom_entry eeprom_addr[] = {
 	{"regdomain", AR5K_EEPROM_REG_DOMAIN},
 };
 
+/* Command line settings */
 static int force_write = 0;
 static int verbose = 0;
+
+/* Global device characteristics */
+static enum {
+	AR5K_EEPROM_ACCESS_5210,
+	AR5K_EEPROM_ACCESS_5211,
+	AR5K_EEPROM_ACCESS_5416
+} eeprom_access;
+static int mac_revision;
 
 /* forward decl. */
 static void usage(const char *n);
@@ -535,8 +544,7 @@ static u_int32_t ath5k_hw_bitswap(u_int32_t val, u_int bits)
 /*
  * Get the PHY Chip revision
  */
-static u_int16_t ath5k_hw_radio_revision(u_int16_t mac_version, void *mem,
-					 u_int8_t chip)
+static u_int16_t ath5k_hw_radio_revision(void *mem, u_int8_t chip)
 {
 	int i;
 	u_int32_t srev;
@@ -564,7 +572,7 @@ static u_int16_t ath5k_hw_radio_revision(u_int16_t mac_version, void *mem,
 	for (i = 0; i < 8; i++)
 		AR5K_REG_WRITE(AR5K_PHY(0x20), 0x00010000);
 
-	if (mac_version == AR5K_SREV_MAC_AR5210) {
+	if (mac_revision == AR5K_SREV_MAC_AR5210) {
 		srev = AR5K_REG_READ(AR5K_PHY(256) >> 28) & 0xf;
 
 		ret = (u_int16_t)ath5k_hw_bitswap(srev, 4) + 1;
@@ -584,8 +592,7 @@ static u_int16_t ath5k_hw_radio_revision(u_int16_t mac_version, void *mem,
 /*
  * Write to EEPROM
  */
-static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
-				 u_int8_t mac_version)
+static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data)
 {
 	u_int32_t status, timeout;
 
@@ -593,7 +600,7 @@ static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
 	 * Initialize EEPROM access
 	 */
 
-	if (mac_version == AR5K_SREV_MAC_AR5210) {
+	if (eeprom_access == AR5K_EEPROM_ACCESS_5210) {
 
 		AR5K_REG_ENABLE_BITS(AR5K_PCICFG, AR5K_PCICFG_EEAE);
 
@@ -635,15 +642,14 @@ static int ath5k_hw_eeprom_write(void *mem, u_int32_t offset, u_int16_t data,
 /*
  * Read from EEPROM
  */
-static int ath5k_hw_eeprom_read(void *mem, u_int32_t offset, u_int16_t *data,
-				u_int8_t mac_version)
+static int ath5k_hw_eeprom_read(void *mem, u_int32_t offset, u_int16_t *data)
 {
 	u_int32_t status, timeout;
 
 	/*
 	 * Initialize EEPROM access
 	 */
-	if (mac_version == AR5K_SREV_MAC_AR5210) {
+	if (eeprom_access == AR5K_EEPROM_ACCESS_5210) {
 		AR5K_REG_ENABLE_BITS(AR5K_PCICFG, AR5K_PCICFG_EEAE);
 		(void)AR5K_REG_READ(AR5K_EEPROM_BASE + (4 * offset));
 	} else {
@@ -696,8 +702,7 @@ static u_int16_t ath5k_eeprom_bin2freq(struct ath5k_eeprom_info *ee,
 /*
  * Read antenna info from EEPROM
  */
-static int ath5k_eeprom_read_ants(void *mem, u_int8_t mac_version,
-				  struct ath5k_eeprom_info *ee,
+static int ath5k_eeprom_read_ants(void *mem, struct ath5k_eeprom_info *ee,
 				  u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
@@ -755,8 +760,7 @@ static int ath5k_eeprom_read_ants(void *mem, u_int8_t mac_version,
 /*
  * Read supported modes from EEPROM
  */
-static int ath5k_eeprom_read_modes(void *mem, u_int8_t mac_version,
-				   struct ath5k_eeprom_info *ee,
+static int ath5k_eeprom_read_modes(void *mem, struct ath5k_eeprom_info *ee,
 				   u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
@@ -851,8 +855,7 @@ static int ath5k_eeprom_read_modes(void *mem, u_int8_t mac_version,
  * and we have to scale (to create the full table for these channels) and
  * interpolate (in order to create the table for any channel).
  */
-static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
-				       struct ath5k_eeprom_info *ee,
+static int ath5k_eeprom_read_pcal_info(void *mem, struct ath5k_eeprom_info *ee,
 				       u_int32_t *offset, unsigned int mode)
 {
 	u_int32_t o = *offset;
@@ -934,7 +937,6 @@ static int ath5k_eeprom_read_pcal_info(void *mem, u_int8_t mac_version,
  * This also works for v5 EEPROMs.
  */
 static int ath5k_eeprom_read_target_rate_pwr_info(void *mem,
-						  u_int8_t mac_version,
 						  struct ath5k_eeprom_info *ee,
 						  u_int32_t *offset,
 						  unsigned int mode)
@@ -1018,8 +1020,7 @@ static int ath5k_eeprom_read_target_rate_pwr_info(void *mem,
 /*
  * Initialize EEPROM & capabilities data
  */
-static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
-			     struct ath5k_eeprom_info *ee)
+static int ath5k_eeprom_init(void *mem, struct ath5k_eeprom_info *ee)
 {
 	unsigned int mode, i;
 	int ret;
@@ -1108,7 +1109,7 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 
 	offset = AR5K_EEPROM_MODES_11A(ee->ee_version);
 
-	ret = ath5k_eeprom_read_ants(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_ants(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1126,7 +1127,7 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	ee->ee_ob[mode][0]		= (val >> 3) & 0x7;
 	ee->ee_db[mode][0]		= val & 0x7;
 
-	ret = ath5k_eeprom_read_modes(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_modes(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1141,7 +1142,7 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	mode = AR5K_EEPROM_MODE_11B;
 	offset = AR5K_EEPROM_MODES_11B(ee->ee_version);
 
-	ret = ath5k_eeprom_read_ants(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_ants(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1150,7 +1151,7 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	ee->ee_ob[mode][1]		= (val >> 4) & 0x7;
 	ee->ee_db[mode][1]		= val & 0x7;
 
-	ret = ath5k_eeprom_read_modes(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_modes(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1185,7 +1186,7 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	mode = AR5K_EEPROM_MODE_11G;
 	offset = AR5K_EEPROM_MODES_11G(ee->ee_version);
 
-	ret = ath5k_eeprom_read_ants(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_ants(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1194,7 +1195,7 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	ee->ee_ob[mode][1]		= (val >> 4) & 0x7;
 	ee->ee_db[mode][1]		= val & 0x7;
 
-	ret = ath5k_eeprom_read_modes(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_modes(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1264,17 +1265,17 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	 * Read power calibration info
 	 */
 	mode = AR5K_EEPROM_MODE_11A;
-	ret = ath5k_eeprom_read_pcal_info(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_pcal_info(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	mode = AR5K_EEPROM_MODE_11B;
-	ret = ath5k_eeprom_read_pcal_info(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_pcal_info(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	mode = AR5K_EEPROM_MODE_11G;
-	ret = ath5k_eeprom_read_pcal_info(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_pcal_info(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1284,19 +1285,19 @@ static int ath5k_eeprom_init(void *mem, u_int8_t mac_version,
 	 */
 	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11A(ee->ee_version);
 	mode = AR5K_EEPROM_MODE_11A;
-	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11B(ee->ee_version);
 	mode = AR5K_EEPROM_MODE_11B;
-	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
 	offset = AR5K_EEPROM_TARGET_PWRSTART(ee->ee_misc1) + AR5K_EEPROM_TARGET_PWR_OFF_11G(ee->ee_version);
 	mode = AR5K_EEPROM_MODE_11G;
-	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, mac_version, ee, &offset, mode);
+	ret = ath5k_eeprom_read_target_rate_pwr_info(mem, ee, &offset, mode);
 	if (ret)
 		return ret;
 
@@ -1359,8 +1360,7 @@ static const char *eeprom_addr2name(int addr)
 	return "<unknown>";
 }
 
-static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
-			  int mac_version)
+static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem)
 {
 #define MAX_NR_WRITES 16
 	struct {
@@ -1453,7 +1453,7 @@ static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
 		u_int16_t oldval, u;
 
 		if (ath5k_hw_eeprom_read
-		    (mem, wr_ops[i].addr, &oldval, mac_version)) {
+		    (mem, wr_ops[i].addr, &oldval)) {
 			err("failed to read old value from offset 0x%04x ",
 			    wr_ops[i].addr);
 			errors++;
@@ -1466,13 +1466,13 @@ static int do_write_pairs(int anr, int argc, char **argv, unsigned char *mem,
 
 		dbg("writing *0x%04x := 0x%04x", wr_ops[i].addr, wr_ops[i].val);
 		if (ath5k_hw_eeprom_write
-		    (mem, wr_ops[i].addr, wr_ops[i].val, mac_version)) {
+		    (mem, wr_ops[i].addr, wr_ops[i].val)) {
 			err("failed to write 0x%04x to offset 0x%04x",
 			    wr_ops[i].val, wr_ops[i].addr);
 			errors++;
 		} else {
 			if (ath5k_hw_eeprom_read
-			    (mem, wr_ops[i].addr, &u, mac_version)) {
+			    (mem, wr_ops[i].addr, &u)) {
 				err("failed to read offset 0x%04x for "
 				    "verification", wr_ops[i].addr);
 				errors++;
@@ -1759,41 +1759,41 @@ static u_int32_t extend_tu(u_int32_t base_tu, u_int32_t val, u_int32_t mask)
 	return result;
 }
 
-static void dump_timers_register(void *mem, u_int16_t mac_version)
+static void dump_timers_register(void *mem)
 {
 #define AR5K_TIMER0_5210		0x802c	/* next TBTT */
 #define AR5K_TIMER0_5211		0x8028
-#define AR5K_TIMER0			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_TIMER0			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER0_5210 : AR5K_TIMER0_5211)
 
 #define AR5K_TIMER1_5210		0x8030	/* next DMA beacon */
 #define AR5K_TIMER1_5211		0x802c
-#define AR5K_TIMER1			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_TIMER1			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER1_5210 : AR5K_TIMER1_5211)
 
 #define AR5K_TIMER2_5210		0x8034	/* next SWBA interrupt */
 #define AR5K_TIMER2_5211		0x8030
-#define AR5K_TIMER2			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_TIMER2			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER2_5210 : AR5K_TIMER2_5211)
 
 #define AR5K_TIMER3_5210		0x8038	/* next ATIM window */
 #define AR5K_TIMER3_5211		0x8034
-#define AR5K_TIMER3			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_TIMER3			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TIMER3_5210 : AR5K_TIMER3_5211)
 
 #define AR5K_TSF_L32_5210		0x806c	/* TSF (lower 32 bits) */
 #define AR5K_TSF_L32_5211		0x804c
-#define AR5K_TSF_L32			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_TSF_L32			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TSF_L32_5210 : AR5K_TSF_L32_5211)
 
 #define AR5K_TSF_U32_5210		0x8070
 #define AR5K_TSF_U32_5211		0x8050
-#define AR5K_TSF_U32			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_TSF_U32			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_TSF_U32_5210 : AR5K_TSF_U32_5211)
 
 #define AR5K_BEACON_5210		0x8024
 #define AR5K_BEACON_5211		0x8020
-#define AR5K_BEACON			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_BEACON			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_BEACON_5210 : AR5K_BEACON_5211)
 
 #define AR5K_LAST_TSTP			0x8080
@@ -1835,7 +1835,7 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 
 #define AR5K_KEYTABLE_0_5210		0x9000
 #define AR5K_KEYTABLE_0_5211		0x8800
-#define AR5K_KEYTABLE_0			(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_KEYTABLE_0			(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_KEYTABLE_0_5210 : \
 					AR5K_KEYTABLE_0_5211)
 
@@ -1845,11 +1845,11 @@ static void dump_timers_register(void *mem, u_int16_t mac_version)
 
 #define AR5K_KEYTABLE_SIZE_5210		64
 #define AR5K_KEYTABLE_SIZE_5211		128
-#define AR5K_KEYTABLE_SIZE		(mac_version == AR5K_SREV_MAC_AR5210 ? \
+#define AR5K_KEYTABLE_SIZE		(mac_revision == AR5K_SREV_MAC_AR5210 ? \
 					AR5K_KEYTABLE_SIZE_5210 : \
 					AR5K_KEYTABLE_SIZE_5211)
 
-static void keycache_dump(void *mem, u_int16_t mac_version)
+static void keycache_dump(void *mem)
 {
 	int i, keylen;
 	u_int32_t val0, val1, val2, val3, val4, keytype, ant, mac0, mac1;
@@ -1902,7 +1902,7 @@ static void keycache_dump(void *mem, u_int16_t mac_version)
 
 /* copy key index (0) to key index (idx) */
 
-static void keycache_copy(void *mem, u_int16_t mac_version, int idx)
+static void keycache_copy(void *mem, int idx)
 {
 	u_int32_t val0, val1, val2, val3, val4, keytype, mac0, mac1;
 
@@ -1961,7 +1961,6 @@ int main(int argc, char *argv[])
 {
 	unsigned long long dev_addr;
 	u_int16_t srev, phy_rev_5ghz, phy_rev_2ghz, ee_magic;
-	u_int8_t mac_version, mac_revision;
 	u_int8_t error, eeprom_size, dev_type, eemap;
 	struct ath5k_eeprom_info *ee;
 	unsigned int byte_size = 0;
@@ -2125,8 +2124,11 @@ int main(int argc, char *argv[])
 		printf("MAC revision 0x%04x is not supported!\n", srev);
 		return -1;
 	}
-	mac_version = srev & AR5K_SREV_VER;
 	mac_revision = srev & AR5K_SREV_REV;
+	if (mac_revision < AR5K_SREV_MAC_AR5311)
+		eeprom_access = AR5K_EEPROM_ACCESS_5210;
+	else
+		eeprom_access = AR5K_EEPROM_ACCESS_5211;
 
 	printf(" -==Device Information==-\n");
 
@@ -2134,8 +2136,7 @@ int main(int argc, char *argv[])
 	       ath5k_hw_get_mac_name(mac_revision), mac_revision);
 
 	/* Verify EEPROM magic value first */
-	error = ath5k_hw_eeprom_read(mem, AR5K_EEPROM_MAGIC, &ee_magic,
-				     mac_version);
+	error = ath5k_hw_eeprom_read(mem, AR5K_EEPROM_MAGIC, &ee_magic);
 
 	if (error) {
 		printf("Unable to read EEPROM Magic value!\n");
@@ -2152,7 +2153,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (ath5k_eeprom_init(mem, mac_version, ee)) {
+	if (ath5k_eeprom_init(mem, ee)) {
 		printf("EEPROM init failed\n");
 		return -1;
 	}
@@ -2167,12 +2168,12 @@ int main(int argc, char *argv[])
 	printf("Device type:  %1i\n", dev_type);
 
 	if (AR5K_EEPROM_HDR_11A(ee->ee_header))
-		phy_rev_5ghz = ath5k_hw_radio_revision(mac_version, mem, 1);
+		phy_rev_5ghz = ath5k_hw_radio_revision(mem, 1);
 	else
 		phy_rev_5ghz = 0;
 
 	if (AR5K_EEPROM_HDR_11B(ee->ee_header))
-		phy_rev_2ghz = ath5k_hw_radio_revision(mac_version, mem, 0);
+		phy_rev_2ghz = ath5k_hw_radio_revision(mem, 0);
 	else
 		phy_rev_2ghz = 0;
 
@@ -2265,7 +2266,7 @@ int main(int argc, char *argv[])
 		printf("==============================================");
 		for (i = 0; i < byte_size / 2; i++) {
 			error =
-			    ath5k_hw_eeprom_read(mem, i, &data, mac_version);
+			    ath5k_hw_eeprom_read(mem, i, &data);
 			if (error) {
 				printf("\nUnable to read at %04x\n", i);
 				continue;
@@ -2285,9 +2286,9 @@ int main(int argc, char *argv[])
 		u_int32_t old_cr = rcr, old_do = rdo;
 		int rc;
 
-		if (mac_version >= AR5K_SREV_MAC_AR5213 && !nr_gpio_set) {
+		if (mac_revision >= AR5K_SREV_MAC_AR5213 && !nr_gpio_set) {
 			dbg("new MAC %x (>= AR5213) set GPIO4 to low",
-			    mac_version);
+			    mac_revision);
 			gpio_set[4].valid = 1;
 			gpio_set[4].value = 0;
 		}
@@ -2326,7 +2327,7 @@ int main(int argc, char *argv[])
 		/* let argv[anr] be the first write parameter */
 		anr++;
 
-		rc = do_write_pairs(anr, argc, argv, mem, mac_version);
+		rc = do_write_pairs(anr, argc, argv, mem);
 
 		/* restore old GPIO settings */
 		if (rcr != old_cr) {
@@ -2346,13 +2347,13 @@ int main(int argc, char *argv[])
 	sta_id0_id1_dump(mem);
 
 	for (i = 0; i < timer_count; i++)
-		dump_timers_register(mem, mac_version);
+		dump_timers_register(mem);
 
 	if (do_keycache_dump)
-		keycache_dump(mem, mac_version);
+		keycache_dump(mem);
 
 	if (keycache_copy_idx > 0)
-		keycache_copy(mem, mac_version, keycache_copy_idx);
+		keycache_copy(mem, keycache_copy_idx);
 
 	return 0;
 }
