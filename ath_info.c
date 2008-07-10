@@ -524,8 +524,9 @@ static enum {
 	AR5K_EEPROM_ACCESS_5211,
 	AR5K_EEPROM_ACCESS_5416
 } eeprom_access;
+static unsigned int eeprom_size;
 static int mac_revision;
-void *mem;
+static void *mem;
 
 /* forward decl. */
 static void usage(const char *n);
@@ -1955,13 +1956,33 @@ static void sta_id0_id1_dump(void)
 	       sta_id1 & AR5K_STA_ID1_NO_KEYSRCH ? 1 : 0);
 }
 
+void show_eeprom_info(struct ath5k_eeprom_info *ee)
+{
+	u_int8_t eemap;
+
+	eemap = AR5K_EEPROM_EEMAP(ee->ee_misc0);
+
+	printf("/============== EEPROM Information =============\\\n");
+	printf("| EEPROM Version:   %1x.%1x |",
+	       (ee->ee_version & 0xF000) >> 12, ee->ee_version & 0xFFF);
+
+	printf(" EEPROM Size: %3d kbit |\n", eeprom_size * 8 / 1024);
+
+	printf("| EEMAP:              %i |", eemap);
+
+	printf(" Reg. Domain:     0x%02X |\n", ee->ee_regdomain);
+
+	dump_capabilities(ee);
+	printf("\n");
+}
+
 int main(int argc, char *argv[])
 {
 	unsigned long long dev_addr;
 	u_int16_t srev, phy_rev_5ghz, phy_rev_2ghz, ee_magic;
-	u_int8_t error, eeprom_size, dev_type, eemap;
+	u_int8_t error, dev_type;
+	u_int16_t eesize;
 	struct ath5k_eeprom_info *ee;
-	unsigned int byte_size = 0;
 	int fd;
 	unsigned int i;
 	int anr = 1;
@@ -2155,13 +2176,8 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	eeprom_size = AR5K_REG_MS(AR5K_REG_READ(AR5K_PCICFG),
-				  AR5K_PCICFG_EESIZE);
-
-	dev_type = AR5K_EEPROM_HDR_DEVICE(ee->ee_header);
-	eemap = AR5K_EEPROM_EEMAP(ee->ee_misc0);
-
 	/* 1 = ?? 2 = ?? 3 = card 4 = wmac */
+	dev_type = AR5K_EEPROM_HDR_DEVICE(ee->ee_header);
 	printf("Device type:  %1i\n", dev_type);
 
 	if (AR5K_EEPROM_HDR_11A(ee->ee_header))
@@ -2184,30 +2200,19 @@ int main(int argc, char *argv[])
 	}
 
 	printf("\n");
-	printf("/============== EEPROM Information =============\\\n");
-	printf("| EEPROM Version:   %1x.%1x |",
-	       (ee->ee_version & 0xF000) >> 12, ee->ee_version & 0xFFF);
 
-	printf(" EEPROM Size: ");
+	eesize = AR5K_REG_MS(AR5K_REG_READ(AR5K_PCICFG), AR5K_PCICFG_EESIZE);
 
-	if (eeprom_size == 0) {
-		printf("  4 kbit |\n");
-		byte_size = 4096 / 8;
-	} else if (eeprom_size == 1) {
-		printf("  8 kbit |\n");
-		byte_size = 8192 / 8;
-	} else if (eeprom_size == 2) {
-		printf(" 16 kbit |\n");
-		byte_size = 16384 / 8;
-	} else
-		printf(" unknown |\n");
+	if (eesize == 0)
+		eeprom_size = 4096 / 8;
+	else if (eesize == 1)
+		eeprom_size = 8192 / 8;
+	else if (eesize == 2)
+		eeprom_size = 16384 / 8;
+	else
+		eeprom_size = 0;
 
-	printf("| EEMAP:              %i |", eemap);
-
-	printf(" Reg. Domain:     0x%02X |\n", ee->ee_regdomain);
-
-	dump_capabilities(ee);
-	printf("\n");
+	show_eeprom_info(ee);
 
 	printf("/=========================================================\\\n");
 	printf("|          Calibration data common for all modes          |\n");
@@ -2259,9 +2264,9 @@ int main(int argc, char *argv[])
 		u_int16_t data;
 		FILE *dumpfile = fopen("ath-eeprom-dump.bin", "w");
 
-		printf("\nEEPROM dump (%d bytes)\n", byte_size);
+		printf("\nEEPROM dump (%d bytes)\n", eeprom_size);
 		printf("==============================================");
-		for (i = 0; i < byte_size / 2; i++) {
+		for (i = 0; i < eeprom_size / 2; i++) {
 			error =
 			    ath5k_hw_eeprom_read(i, &data);
 			if (error) {
