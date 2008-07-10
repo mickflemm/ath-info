@@ -192,8 +192,14 @@ static const struct ath5k_srev_name ath5k_phy_names[] = {
 /*
  * Common AR5xxx EEPROM data offsets (set these on AR5K_EEPROM_BASE)
  */
-#define AR5K_EEPROM_MAGIC		0x003d	/* EEPROM Magic number */
-#define AR5K_EEPROM_MAGIC_VALUE		0x5aa5	/* Default - found on EEPROM */
+#define AR5K_EEPROM_MAGIC3		0x003d	/* EEPROM Magic number (old layout) */
+#define AR5K_EEPROM_MAGIC5		0x0000	/* EEPROM Magic number (new layout) */
+#define AR5K_EEPROM_MAGIC	(mac_revision < AR5K_SREV_MAC_AR5416 ? \
+				 AR5K_EEPROM_MAGIC3 : AR5K_EEPROM_MAGIC5)
+#define AR5K_EEPROM_MAGIC_VALUE3	0x5aa5
+#define AR5K_EEPROM_MAGIC_VALUE5	0xa55a
+#define AR5K_EEPROM_MAGIC_VALUE (mac_revision < AR5K_SREV_MAC_AR5416 ? \
+				 AR5K_EEPROM_MAGIC_VALUE3 : AR5K_EEPROM_MAGIC_VALUE5)
 #define AR5K_EEPROM_MAGIC_5212		0x0000145c	/* 5212 */
 #define AR5K_EEPROM_MAGIC_5211		0x0000145b	/* 5211 */
 #define AR5K_EEPROM_MAGIC_5210		0x0000145a	/* 5210 */
