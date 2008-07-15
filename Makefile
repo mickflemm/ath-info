@@ -18,7 +18,7 @@ MANS = ath_info.8
 all: $(PROGRAMS)
 
 ath_info: ath_info.o
-	$(CC) $(LDFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
