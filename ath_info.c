@@ -856,8 +856,8 @@ static int ath5k_eeprom_read_modes(struct ath5k_eeprom_info *ee,
  * that for each channel there is a power curve that's hw specific
  * (depends on amplifier) and we try to "correct" this curve using offests
  * we pass on to phy chip (baseband -> before amplifier) so that it can
- * use acurate power values when setting tx power (takes amplifier's performance
- * on each channel into account).
+ * use accurate power values when setting tx power (takes amplifier's
+ * performance on each channel into account).
  *
  * EEPROM provides us with the offsets for some pre-calibrated channels
  * and we have to scale (to create the full table for these channels) and
