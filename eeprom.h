@@ -173,6 +173,7 @@
 #define AR5K_EEPROM_N_2GHZ_CHAN		3
 #define AR5K_EEPROM_N_2GHZ_CHAN_2413	4
 #define AR5K_EEPROM_MAX_CHAN		10
+#define	AR5K_EEPROM_N_PWR_POINTS_5111	11
 #define AR5K_EEPROM_N_PCDAC		11
 #define	AR5K_EEPROM_N_PHASE_CAL		5
 #define AR5K_EEPROM_N_TEST_FREQ		8
@@ -228,34 +229,53 @@ enum ath5k_ant_setting {
 };
 
 /* Per channel calibration data, used for power table setup */
+struct ath5k_chan_pcal_info_rf5111 {
+	/* Power levels in half dbm units
+	 * for one power curve. */
+	int8_t		pwr[AR5K_EEPROM_N_PWR_POINTS_5111];
+	/* PCDAC table steps
+	 * for the above values */
+	int8_t		pcdac[AR5K_EEPROM_N_PWR_POINTS_5111];
+	/* Starting PCDAC step */
+	int8_t		pcdac_min;
+	/* Final PCDAC step */
+	int8_t		pcdac_max;
+};
+
 struct ath5k_chan_pcal_info_rf5112 {
-	/* Frequency */
-	u_int16_t	freq;
-	/* Power levels in dBm * 4 units */
+	/* Power levels in quarter dBm units
+	 * for lower (0) and higher (3)
+	 * level curves */
 	int8_t		pwr_x0[AR5K_EEPROM_N_XPD0_POINTS];
 	int8_t		pwr_x3[AR5K_EEPROM_N_XPD3_POINTS];
-	/* PCDAC tables in dBm * 2 units */
+	/* PCDAC table steps
+	 * for the above values */
 	u_int8_t	pcdac_x0[AR5K_EEPROM_N_XPD0_POINTS];
 	u_int8_t	pcdac_x3[AR5K_EEPROM_N_XPD3_POINTS];
-	/* Max available power */
-	int8_t	max_pwr;
 };
 
 struct ath5k_chan_pcal_info_rf2413 {
-	/* Frequency */
-	u_int16_t	freq;
-
+	/* Number of pd gain curves for
+	 * this channel */
 	int8_t		pd_gains;
-
+	/* Starting pwr/pddac values */
 	int8_t		pwr_i[AR5K_EEPROM_N_PD_GAINS];
 	u_int8_t	pddac_i[AR5K_EEPROM_N_PD_GAINS];
-
-	int8_t		pwr_delta[AR5K_EEPROM_N_PD_GAINS]
+	/* (pwr,pddac) points */
+	int8_t		pwr[AR5K_EEPROM_N_PD_GAINS]
 				[AR5K_EEPROM_N_PD_POINTS];
-	u_int8_t	pddac_delta[AR5K_EEPROM_N_PD_GAINS]
+	u_int8_t	pddac[AR5K_EEPROM_N_PD_GAINS]
 				[AR5K_EEPROM_N_PD_POINTS];
+};
 
-	int8_t		max_pwr;	
+struct ath5k_chan_pcal_info {
+	/* Frequency */
+	u_int16_t	freq;
+	/* Max available power */
+	int8_t		max_pwr;
+	struct ath5k_chan_pcal_info_rf5111 *rf5111_info;
+	struct ath5k_chan_pcal_info_rf5112 *rf5112_info;
+	struct ath5k_chan_pcal_info_rf2413 *rf2413_info;
 };
 
 /* Per rate calibration data for each mode, used for power table setup */
@@ -325,11 +345,11 @@ struct ath5k_eeprom_info {
 	/* Power calibration data */
 	u_int16_t	ee_false_detect[AR5K_EEPROM_N_MODES];
 	u_int16_t	ee_cal_piers_a;
-	struct ath5k_chan_pcal_info_rf2413	ee_pwr_cal_a[AR5K_EEPROM_N_5GHZ_CHAN];
+	struct ath5k_chan_pcal_info	ee_pwr_cal_a[AR5K_EEPROM_N_5GHZ_CHAN];
 	u_int16_t	ee_cal_piers_b;
-	struct ath5k_chan_pcal_info_rf2413	ee_pwr_cal_b[AR5K_EEPROM_N_2GHZ_CHAN];
+	struct ath5k_chan_pcal_info	ee_pwr_cal_b[AR5K_EEPROM_N_2GHZ_CHAN];
 	u_int16_t	ee_cal_piers_g;
-	struct ath5k_chan_pcal_info_rf2413	ee_pwr_cal_g[AR5K_EEPROM_N_2GHZ_CHAN];
+	struct ath5k_chan_pcal_info	ee_pwr_cal_g[AR5K_EEPROM_N_2GHZ_CHAN];
 	/* Per rate target power levels */
 	u_int16_t	ee_rate_target_pwr_num_a;
 	struct ath5k_rate_pcal_info	ee_rate_tpwr_a[AR5K_EEPROM_N_5GHZ_CHAN];
