@@ -33,14 +33,20 @@
 #undef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-#define dbg(fmt, ...) \
+#define dbg(...) \
 do { \
 	if (verbose) \
-		printf("#DBG %s: " fmt "\n", __FUNCTION__, ## __VA_ARGS__); \
+		printf("#DBG %s: ", __func__); \
+		printf(__VA_ARGS__); \
+		printf("\n"); \
  } while (0)
 
-#define err(fmt, ...) \
-fprintf(stderr, "#ERR %s: " fmt "\n", __FUNCTION__, ## __VA_ARGS__)
+#define err(...) \
+do { \
+	printf("#ERR %s: ", __func__); \
+	printf(__VA_ARGS__); \
+	printf("\n"); \
+ } while (0)
 
 #define AR5K_PCI_MEM_SIZE 0x10000
 
