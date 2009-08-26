@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Try accepting 64-bit device address even with 32-bit userspace */
-#define _FILE_OFFSET_BITS 64
+/* Needed for strtoull, u_int etc */
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>

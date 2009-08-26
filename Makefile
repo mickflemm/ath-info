@@ -15,13 +15,17 @@ INSTALL = install
 PROGRAMS = ath_info
 MANS = ath_info.8
 
+CPPFLAGS_FILE = $(shell echo "\#include <stdio.h>" | \
+		  $(CC) -D_FILE_OFFSET_BITS=64 -E - >/dev/null 2>&1 && \
+		  echo "-D_FILE_OFFSET_BITS=64")
+
 all: $(PROGRAMS)
 
 ath_info: ath_info.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
 
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	$(CC) $(CFLAGS) $(CPPFLAGS_FILE) -c $<
 
 clean:
 	rm -f *.o $(PROGRAMS)
