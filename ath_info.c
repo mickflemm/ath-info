@@ -726,27 +726,11 @@ static int ath5k_eeprom_read_modes(struct ath5k_eeprom_info *ee,
 		}
 	}
 
-	/* return new offset */
-	*offset = o;
-
-	return 0;
-}
-
-/*
- * Read turbo mode information on newer EEPROM versions
- */
-static int ath5k_eeprom_read_turbo_modes(struct ath5k_eeprom_info *ee,
-				   u_int32_t *offset, unsigned int mode)
-{
-	u_int32_t o = *offset;
-	u_int16_t val;
-	int ret;
-
-	if (ee->ee_version < AR5K_EEPROM_VERSION_5_0)
-		return 0;
-
-	switch (mode){
-	case AR5K_EEPROM_MODE_11A:
+	/*
+	 * Read turbo mode information on newer EEPROM versions
+	 */
+	if (ee->ee_version >= AR5K_EEPROM_VERSION_5_0 &&
+	    mode == AR5K_EEPROM_MODE_11A) {
 		ee->ee_switch_settling_turbo[mode] = (val >> 6) & 0x7f;
 
 		ee->ee_atn_tx_rx_turbo[mode] = (val >> 13) & 0x7;
@@ -761,8 +745,10 @@ static int ath5k_eeprom_read_turbo_modes(struct ath5k_eeprom_info *ee,
 
 		if (AR5K_EEPROM_EEMAP(ee->ee_misc0) >=2)
 			ee->ee_pd_gain_overlap = (val >> 9) & 0xf;
-		break;
-	case AR5K_EEPROM_MODE_11G:
+	}
+
+	if (ee->ee_version >= AR5K_EEPROM_VERSION_5_0 &&
+	    mode == AR5K_EEPROM_MODE_11G) {
 		ee->ee_switch_settling_turbo[mode] = (val >> 8) & 0x7f;
 
 		ee->ee_atn_tx_rx_turbo[mode] = (val >> 15) & 0x7;
@@ -774,7 +760,6 @@ static int ath5k_eeprom_read_turbo_modes(struct ath5k_eeprom_info *ee,
 		AR5K_EEPROM_READ(o++, val);
 		ee->ee_adc_desired_size_turbo[mode] |= (val & 0x7) << 5;
 		ee->ee_pga_desired_size_turbo[mode] = (val >> 3) & 0xff;
-		break;
 	}
 
 	/* return new offset */
@@ -1617,10 +1602,6 @@ static int ath5k_eeprom_init(struct ath5k_eeprom_info *ee)
 	if (ret)
 		return ret;
 
-	ret = ath5k_eeprom_read_turbo_modes(ee, &offset, mode);
-	if (ret)
-		return ret;
-
 	/*
 	 * Get values for 802.11b (2.4GHz)
 	 */
@@ -1646,10 +1627,6 @@ static int ath5k_eeprom_init(struct ath5k_eeprom_info *ee)
 		return ret;
 
 	ret = ath5k_eeprom_read_modes(ee, &offset, mode);
-	if (ret)
-		return ret;
-
-	ret = ath5k_eeprom_read_turbo_modes(ee, &offset, mode);
 	if (ret)
 		return ret;
 
