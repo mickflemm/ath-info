@@ -2486,7 +2486,7 @@ static void sta_id0_id1_dump(void)
 	       sta_id1 & AR5K_STA_ID1_NO_KEYSRCH ? 1 : 0);
 }
 
-void show_eeprom_info(struct ath5k_eeprom_info *ee)
+static void show_eeprom_info(struct ath5k_eeprom_info *ee)
 {
 	u_int8_t eemap;
 
