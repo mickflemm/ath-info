@@ -2380,7 +2380,7 @@ static void dump_timers_register(void)
 
 static void keycache_dump(void)
 {
-	int i, keylen;
+	int i;
 	u_int32_t val0, val1, val2, val3, val4, keytype, ant, mac0, mac1;
 
 	/* dump all 128 entries */
@@ -2396,15 +2396,6 @@ static void keycache_dump(void)
 			keytype = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 5));
 			ant = keytype & 8;
 			keytype &= ~8;
-			switch (keytype) {
-			case 0: /* WEP40  */ keylen =  40 / 8; break;
-			case 1: /* WEP104 */ keylen = 104 / 8; break;
-			case 3: /* WEP128 */ keylen = 128 / 8; break;
-			case 4: /* TKIP   */ keylen = 128 / 8; break;
-			case 5: /* AES    */ keylen = 128 / 8; break;
-			case 6: /* CCM    */ keylen = 128 / 8; break;
-			default:             keylen = 0;       break;
-			}
 			mac0 = AR5K_REG_READ(AR5K_KEYTABLE_OFF(i, 6));
 
 			printf("[%3u] keytype %d [%s%s%s%s%s%s%s%s] mac %02x:%02x:%02x:%02x:%02x:%02x key:%08x-%08x-%08x-%08x-%08x\n",
