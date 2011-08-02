@@ -35,10 +35,11 @@
 
 #define dbg(...) \
 do { \
-	if (verbose) \
+	if (verbose) { \
 		printf("#DBG %s: ", __func__); \
 		printf(__VA_ARGS__); \
 		printf("\n"); \
+	} \
  } while (0)
 
 #define err(...) \
