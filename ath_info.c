@@ -1,7 +1,7 @@
 /* -*- linux-c -*- */
 /*-
- * Copyright (c) 2007 Nick Kossifidis <mickflemm@gmail.com>
- * Copyright (c) 2007 Joerg Albert    <jal2 *at* gmx.de>
+ * Copyright (c) 2011 Nick Kossifidis <mickflemm@gmail.com>
+ * Copyright (c) 2011 Joerg Albert    <jal2 *at* gmx.de>
  *
  * This program is free software you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -378,11 +378,45 @@ static u_int16_t ath5k_hw_radio_revision(u_int8_t chip)
 }
 
 /*
+ * Read from EEPROM
+ */
+static int ath5k_hw_eeprom_read(u_int32_t offset, u_int16_t *data)
+{
+	u_int32_t status, timeout;
+
+	/*
+	 * Initialize EEPROM access
+	 */
+	if (eeprom_access == AR5K_EEPROM_ACCESS_5210) {
+		AR5K_REG_ENABLE_BITS(AR5K_PCICFG, AR5K_PCICFG_EEAE);
+		(void)AR5K_REG_READ(AR5K_EEPROM_BASE + (4 * offset));
+	} else {
+		AR5K_REG_WRITE(AR5K_EEPROM_BASE, offset);
+		AR5K_REG_ENABLE_BITS(AR5K_EEPROM_CMD, AR5K_EEPROM_CMD_READ);
+	}
+
+	for (timeout = AR5K_TUNE_REGISTER_TIMEOUT; timeout > 0; timeout--) {
+		status = AR5K_REG_READ(AR5K_EEPROM_STATUS);
+		if (status & AR5K_EEPROM_STAT_RDDONE) {
+			if (status & AR5K_EEPROM_STAT_RDERR)
+				return 1;
+			*data = (u_int16_t)
+			    (AR5K_REG_READ(AR5K_EEPROM_DATA) & 0xffff);
+			return (0);
+		}
+		usleep(15);
+	}
+
+	return 1;
+}
+
+/*
  * Write to EEPROM
  */
 static int ath5k_hw_eeprom_write(u_int32_t offset, u_int16_t data)
 {
 	u_int32_t status, timeout;
+	u_int16_t read_data;
 
 	/*
 	 * Initialize EEPROM access
@@ -419,40 +453,13 @@ static int ath5k_hw_eeprom_write(u_int32_t offset, u_int16_t data)
 				    offset);
 				return 1;
 			}
-			return 0;
-		}
-		usleep(15);
-	}
-
-	return 1;
-}
-
-/*
- * Read from EEPROM
- */
-static int ath5k_hw_eeprom_read(u_int32_t offset, u_int16_t *data)
-{
-	u_int32_t status, timeout;
-
-	/*
-	 * Initialize EEPROM access
-	 */
-	if (eeprom_access == AR5K_EEPROM_ACCESS_5210) {
-		AR5K_REG_ENABLE_BITS(AR5K_PCICFG, AR5K_PCICFG_EEAE);
-		(void)AR5K_REG_READ(AR5K_EEPROM_BASE + (4 * offset));
-	} else {
-		AR5K_REG_WRITE(AR5K_EEPROM_BASE, offset);
-		AR5K_REG_ENABLE_BITS(AR5K_EEPROM_CMD, AR5K_EEPROM_CMD_READ);
-	}
-
-	for (timeout = AR5K_TUNE_REGISTER_TIMEOUT; timeout > 0; timeout--) {
-		status = AR5K_REG_READ(AR5K_EEPROM_STATUS);
-		if (status & AR5K_EEPROM_STAT_RDDONE) {
-			if (status & AR5K_EEPROM_STAT_RDERR)
+			ath5k_hw_eeprom_read( offset, &read_data);
+			if (read_data != data) {
+				err("data doesn't match, write failed at 0x%04x\n",
+				    offset);
 				return 1;
-			*data = (u_int16_t)
-			    (AR5K_REG_READ(AR5K_EEPROM_DATA) & 0xffff);
-			return (0);
+			}
+			return 0;
 		}
 		usleep(15);
 	}
@@ -1887,7 +1894,7 @@ static void usage(const char *n)
 {
 	unsigned int i;
 
-	fprintf(stderr, "%s [-w [-g N:M]] [-v] [-f] [-d] [-R addr] [-W addr val] <base_address> "
+	fprintf(stderr, "%s [-w [-g N:M]] [-v] [-f] [-d] [-r] [-R addr] [-W addr val] <base_address> [dumpfile] "
 		"[<name1> <val1> [<name2> <val2> ...]]\n\n", n);
 	fprintf(stderr,
 		"-w      write values into EEPROM\n"
@@ -1895,6 +1902,8 @@ static void usage(const char *n)
 		"-v      verbose output\n"
 		"-f      force; suppress question before writing\n"
 		"-d      dump EEPROM (file 'ath-eeprom-dump.bin' and screen)\n"
+		"-r	 restore EEPROM from dumpfile provided\n"
+		"-M <mac_addr>   write provided mac address on EEPROM\n"
 		"-R <addr>       read register at <addr> (hex)\n"
 		"-W <addr> <val> write <val> (hex) into register at <addr> (hex)\n"
 		"<base_address>  device base address (see lspci output)\n\n");
@@ -2510,8 +2519,12 @@ int main(int argc, char *argv[])
 	int anr = 1;
 	int do_write = 0;	/* default: read only */
 	int do_dump = 0;
+	int do_restore = 0;
+	int change_mac = 0;
 	int reg_read = 0;
 	int reg_write = 0;
+	u_int8_t *mac_addr = NULL;
+	char* colon = NULL;
 	unsigned int reg_write_val = 0;
 	unsigned int timer_count = 1;
 	int do_keycache_dump = 0;
@@ -2566,8 +2579,35 @@ int main(int argc, char *argv[])
 			verbose = 1;
 			break;
 
+		case 'r':
+			do_restore = 1;
+			break;
+
 		case 'd':
 			do_dump = 1;
+			break;
+
+		case 'M':
+			change_mac = 1;
+			anr++;
+			colon = strchr(argv[anr], ':');
+			if(!colon) {
+				printf("Invalid MAC address\n");
+				return -1;
+			}
+			mac_addr = malloc(sizeof(u_int8_t) * 6);
+			strcpy(colon, "\0");
+			mac_addr[0] = (u_int8_t) strtoul(argv[anr], NULL, 16);
+			for (i = 1; i < 5; i++) {
+				mac_addr[i] = (u_int8_t) strtoul(colon + 1, NULL, 16);
+				colon = strchr(colon + 1, ':');
+				if(!colon) {
+					printf("Invalid MAC address\n");
+					return -1;
+				}
+				strcpy(colon, "\0");
+			}
+			mac_addr[5] = (u_int8_t) strtoul(colon + 1, NULL, 16);
 			break;
 
 		case 'R':
@@ -2797,6 +2837,17 @@ int main(int argc, char *argv[])
 	       AR5K_REG_READ(AR5K_GPIOCR), AR5K_REG_READ(AR5K_GPIODO),
 	       AR5K_REG_READ(AR5K_GPIODI));
 
+	sta_id0_id1_dump();
+
+	for (i = 0; i < timer_count; i++)
+		dump_timers_register();
+
+	if (do_keycache_dump)
+		keycache_dump();
+
+	if (keycache_copy_idx > 0)
+		keycache_copy(keycache_copy_idx);
+
 	if (do_dump) {
 		u_int16_t data;
 		FILE *dumpfile = fopen("ath-eeprom-dump.bin", "w");
@@ -2817,6 +2868,60 @@ int main(int argc, char *argv[])
 		}
 		printf("\n==============================================\n");
 		fclose(dumpfile);
+	}
+
+	if (do_restore) {
+		u_int16_t data;
+		if (argc < 2) {
+			fprintf(stderr, "No dumpfile provided\n");
+			return -1;
+		}
+		FILE *dumpfile = fopen(argv[anr + 1], "rb");
+		printf("\nEEPROM restore (%d bytes)\n", eeprom_size);
+		printf("==============================================");
+		for (i = 0; i < eeprom_size / 2; i++) {
+			fread(&data, 2, 1, dumpfile);
+			error =
+			    ath5k_hw_eeprom_write(i, data);
+			if (error) {
+				printf("\nUnable to write at %04x\n", i);
+				continue;
+			}
+			if (!(i % 8))
+				printf("\n%04x: ", i);
+			printf(" %04x", data);
+		}
+		printf("\n==============================================\n");
+		fclose(dumpfile);
+	}
+
+	if (change_mac){
+		printf("MAC address to write: %02x:%02x:%02x:%02x:%02x:%02x\n",
+				mac_addr[0], mac_addr[1], mac_addr[2],
+				mac_addr[3], mac_addr[4], mac_addr[5]);
+
+		if (!force_write) {
+			int c;
+			printf
+			    ("WARNING: The write function may easy brick your device or\n"
+			     "violate state regulation on frequency usage.\n"
+			     "Proceed on your own risk!\n"
+			     "Shall I write the above value(s)? (y/n)\n");
+			c = getchar();
+			if (c != 'y' && c != 'Y') {
+				printf("user abort\n");
+				return 0;
+			}
+		}
+		/* Write MAC octets */
+		ath5k_hw_eeprom_write(0xa5, (mac_addr[0] | (mac_addr[1] << 8)));
+		ath5k_hw_eeprom_write(0xa6, (mac_addr[2] | (mac_addr[3] << 8)));
+		ath5k_hw_eeprom_write(0xa7, (mac_addr[4] | (mac_addr[5] << 8)));
+
+		/* And again reversed */
+		ath5k_hw_eeprom_write(0x1d, (mac_addr[5] | (mac_addr[4] << 8)));
+		ath5k_hw_eeprom_write(0x1e, (mac_addr[3] | (mac_addr[2] << 8)));
+		ath5k_hw_eeprom_write(0x1f, (mac_addr[1] | (mac_addr[0] << 8)));
 	}
 
 	if (do_write) {
@@ -2882,17 +2987,6 @@ int main(int argc, char *argv[])
 
 		return rc;
 	}
-
-	sta_id0_id1_dump();
-
-	for (i = 0; i < timer_count; i++)
-		dump_timers_register();
-
-	if (do_keycache_dump)
-		keycache_dump();
-
-	if (keycache_copy_idx > 0)
-		keycache_copy(keycache_copy_idx);
 
 	return 0;
 }
